@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.face_recognition_attendance_app" />
+                  <option name="mobileSdkAppId" value="1:819089537062:android:4279144cd6da8726c6cee7" />
+                  <option name="projectId" value="facerecognitionattendanc-2cab7" />
+                  <option name="projectNumber" value="819089537062" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
