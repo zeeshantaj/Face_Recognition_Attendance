@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.face_recognition_attendance_app.Activities.Models.User;
 import com.example.face_recognition_attendance_app.Activities.ScanUserFaceActivity;
+import com.example.face_recognition_attendance_app.Activities.Util.FragmentUtils;
 import com.example.face_recognition_attendance_app.Activities.enums.Role;
 import com.example.face_recognition_attendance_app.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -27,15 +28,11 @@ public class LoginActivity extends AppCompatActivity {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
-        SetFragment(getSupportFragmentManager(),new LoginFragment(),R.id.loginParentFrameLay);
+        getSupportActionBar().hide();
+        FragmentUtils.SetFragment(getSupportFragmentManager(),new LoginFragment(),R.id.loginParentFrameLay);
 //        User user = new User("zeeshan taj","1234567", Role.USER);
 //        addNewUser(user);
 
-    }
-    public void SetFragment(FragmentManager fragmentManager, Fragment fragment, int ContainerID){
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(ContainerID,fragment);
-        fragmentTransaction.commit();
     }
 
     private void addNewUser(User user) {

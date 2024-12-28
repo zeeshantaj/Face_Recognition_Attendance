@@ -17,7 +17,12 @@ import com.example.face_recognition_attendance_app.Activities.ScanUserFaceActivi
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceDetection;
@@ -30,6 +35,7 @@ import org.tensorflow.lite.support.image.ImageProcessor;
 import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.image.ops.ResizeOp;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +57,7 @@ public class ScanUserFaceProcessor extends VisionBaseProcessor<List<Face>> {
     public interface ScanUserFaceCallback {
         void onFaceRecognised(Face face, float probability, String name);
         void onFaceDetected(Face face, Bitmap faceBitmap, float[] vector);
+        void onVerificationComplete();
     }
 
     private static final String TAG = "FaceRecognitionProcessor";
@@ -208,34 +215,91 @@ public class ScanUserFaceProcessor extends VisionBaseProcessor<List<Face>> {
     }
 
     // Register a name against the vector
-    public void registerFace(String userId, float[] tempVector) {
+    public void registerFace(String userId, float[] tempVector,Bitmap bitmap) {
         // Convert float array to string
         String faceVectorString = convertFloatArrayToString(tempVector);
 
         // Add new Employee to recognisedFaceList
         recognisedFaceList.add(new Employee(userId, tempVector));
 
-        // Initialize FirebaseFirestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Set the data of the document with the User information
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("UsersInfo")
+                .child(userId);
+
         Map<String, Object> data = new HashMap<>();
         data.put("face_vector", faceVectorString);
 
-        db.collection("Users")
-                .document(userId)
-                .update(data)
-                .addOnSuccessListener(documentReference -> {
-                    Log.d(TAG, "Document added successfully to Firestore for userID: " + userId);
+        databaseReference.updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                recognisedFaceList.clear();
+                uploadImageToDb(bitmap,userId);
+                Log.d(TAG, "Document added successfully to database for userID: " + userId);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
 
-                    recognisedFaceList.clear();
-                })
-                .addOnFailureListener(e -> {
-                    db.collection("Users").document(userId).delete();
-                    Log.w(TAG, "Error adding document to Firestore", e);
-                });
+                Log.w(TAG, "Error adding vectorFace", e);
+            }
+        });
+//        db.collection("Users")
+//                .document(userId)
+//                .update(data)
+//                .addOnSuccessListener(documentReference -> {
+//                    Log.d(TAG, "Document added successfully to Firestore for userID: " + userId);
+//                    recognisedFaceList.clear();
+//                })
+//                .addOnFailureListener(e -> {
+//                    db.collection("Users").document(userId).delete();
+//                    Log.w(TAG, "Error adding document to Firestore", e);
+//                });
     }
+    public void uploadImageToDb(Bitmap bitmap,String userId){
+        if (bitmap == null) {
+            Log.e("BitmapUploader", "Bitmap is null");
+            return;
+        }
 
+        // Step 1: Convert Bitmap to Byte Array
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] data = baos.toByteArray();
+
+        // Step 2: Upload Byte Array to Firebase Storage
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageRef = storage.getReference().child("images/UserScanImage/"+userId+"/"+userId+".png");
+
+        UploadTask uploadTask = storageRef.putBytes(data);
+        uploadTask.addOnSuccessListener(taskSnapshot -> {
+            // File uploaded successfully
+            storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance()
+                        .getReference()
+                        .child("UsersInfo")
+                        .child(userId);
+                HashMap<String,Object> value = new HashMap<>();
+                value.put("imageUrl", uri.toString());
+                databaseReference.updateChildren(value).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.v("MyApp","everything uploaded to firebase goto home");
+                        callback.onVerificationComplete();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("image url upload to db failed", "image url upload to db failed", e);
+                    }
+                });
+            });
+        }).addOnFailureListener(e -> {
+            // Failed to upload
+            Log.e("BitmapUploader", "Failed to upload bitmap to Firebase Storage", e);
+        });
+    }
     public static String convertFloatArrayToString(float[] floatArray) {
         StringBuilder stringBuilder = new StringBuilder();
         for (float value : floatArray) {

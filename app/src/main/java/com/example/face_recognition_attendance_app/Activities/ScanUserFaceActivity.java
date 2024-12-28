@@ -18,12 +18,19 @@ import com.example.face_recognition_attendance_app.Activities.FaceRecognizer.Vis
 import com.example.face_recognition_attendance_app.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.google.mlkit.vision.face.Face;
 
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.support.common.FileUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 
 public class ScanUserFaceActivity extends CreateUserHelperActivity implements ScanUserFaceProcessor.ScanUserFaceCallback {
     private static final String TAG = "ScanUserFaceActivity";
@@ -65,43 +72,21 @@ public class ScanUserFaceActivity extends CreateUserHelperActivity implements Sc
     }
 
     @Override
+    public void onVerificationComplete() {
+        startActivity(new Intent(this,HomeActivity.class));
+    }
+
+    @Override
     public void onFaceRecognised(Face face, float probability, String name) {
         // Do Nothing
     }
 
-    public void onCancelBtnClick(View v) {
-        deleteUser();
-    }
 
     private void openListUserActivity() {
 //        Intent intent = new Intent(this, ListUserActivity.class);
 //        startActivity(intent);
 //        finish();
     }
-
-    @Override
-    public void onBackPressed() {
-        deleteUser();
-    }
-
-    private void deleteUser() {
-//        FirebaseFirestore db = FirebaseFirestore.getInstance();
-//        db.collection("Users").document(userId).delete()
-//                .addOnSuccessListener(new OnSuccessListener<Void>() {
-//                    @Override
-//                    public void onSuccess(Void unused) {
-//                        Log.d(TAG, "Berhasil membatalkan create user, dengan ID : " + userId);
-//                        openListUserActivity();
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        Log.w(TAG, "Terjadi kesalahan saat membatalkan proses membuat user");
-//                    }
-//                });
-    }
-
     @Override
     public void saveData(View view) {
         super.saveData(view);
@@ -118,21 +103,20 @@ public class ScanUserFaceActivity extends CreateUserHelperActivity implements Sc
         View dialogView = inflater.inflate(R.layout.add_face_dialog, null);
         ((ImageView) dialogView.findViewById(R.id.dlg_image)).setImageBitmap(tempBitmap);
 
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(dialogView);
-        builder.setPositiveButton("Ya", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
-                scanUserFaceProcessor.registerFace(userId, tempVector);
-
+                scanUserFaceProcessor.registerFace(userId, tempVector,tempBitmap);
                 showToast("User Saved successfully");
-
                 openListUserActivity();
             }
         });
         builder.show();
     }
+
 
     private void showToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_LONG).show();
