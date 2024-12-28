@@ -152,6 +152,8 @@ public class ScanUserFaceProcessor extends VisionBaseProcessor<List<Face>> {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        e.printStackTrace();
+                        Log.d("MyApp","exception "+e.getMessage());
                         // intentionally left empty
                     }
                 });
@@ -239,7 +241,6 @@ public class ScanUserFaceProcessor extends VisionBaseProcessor<List<Face>> {
         for (float value : floatArray) {
             stringBuilder.append(value).append(",");
         }
-        // Hapus koma terakhir
         if (stringBuilder.length() > 0) {
             stringBuilder.deleteCharAt(stringBuilder.length() - 1);
         }

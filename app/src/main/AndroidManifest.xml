@@ -26,7 +26,19 @@
             android:name=".Activities.HomeActivity"
             android:exported="true"/>
         <activity
-            android:name=".Activities.LoginActivity"
+            android:name=".Activities.ScanUserFaceActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".Activities.FaceRecognitionActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".Activities.FaceRecognizer.CreateUserHelperActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".Activities.Helper.MLVideoHelperActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".Activities.Login.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

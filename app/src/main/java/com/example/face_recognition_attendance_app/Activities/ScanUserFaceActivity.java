@@ -38,7 +38,6 @@ public class ScanUserFaceActivity extends CreateUserHelperActivity implements Sc
     @Override
     protected void onStart() {
         super.onStart();
-
         userId = getIntent().getStringExtra("userId");
     }
     @Override
