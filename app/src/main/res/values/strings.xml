@@ -46,7 +46,7 @@
     <string name="log_in">Login</string>
     <string name="sig_up">SignUp</string>
     <string name="login">Login</string>
-    <string name="or_login_with">Or\n Login with</string>
+    <string name="or_login_with">Or</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="already_have_an_account">Already Have an account</string>
     <string name="back_to_log_in">Back to Log in</string>

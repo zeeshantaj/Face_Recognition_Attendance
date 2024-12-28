@@ -3,10 +3,14 @@ package com.example.face_recognition_attendance_app.Activities.Login;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.example.face_recognition_attendance_app.Activities.Models.User;
 import com.example.face_recognition_attendance_app.Activities.ScanUserFaceActivity;
@@ -23,9 +27,15 @@ public class LoginActivity extends AppCompatActivity {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
+        SetFragment(getSupportFragmentManager(),new LoginFragment(),R.id.loginParentFrameLay);
+//        User user = new User("zeeshan taj","1234567", Role.USER);
+//        addNewUser(user);
 
-        User user = new User("zeeshan taj","1234567", Role.USER);
-        addNewUser(user);
+    }
+    public void SetFragment(FragmentManager fragmentManager, Fragment fragment, int ContainerID){
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(ContainerID,fragment);
+        fragmentTransaction.commit();
     }
 
     private void addNewUser(User user) {
