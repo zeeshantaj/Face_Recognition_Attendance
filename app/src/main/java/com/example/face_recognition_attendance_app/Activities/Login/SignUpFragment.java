@@ -119,10 +119,11 @@ public class SignUpFragment extends Fragment {
 
                     auth.createUserWithEmailAndPassword(email, pass).addOnSuccessListener(authResult -> {
 
-                        HashMap<String,String> value = new HashMap<>();
+                        HashMap<String,Object> value = new HashMap<>();
                         value.put("name",name);
                         value.put("email",email);
                         value.put("password",pass);
+                        value.put("isRegistered", false);
                         String uid = auth.getUid();
 
                         databaseReference.child("UsersInfo").child(Objects.requireNonNull(uid)).setValue(value)
@@ -149,6 +150,7 @@ public class SignUpFragment extends Fragment {
     private void redirectToScanFaceActivity(String userId) {
         Intent intent = new Intent(getContext(), ScanUserFaceActivity.class);
         intent.putExtra("userId", userId);
+        intent.putExtra("isRegistered", false);
         startActivity(intent);
     }
 }

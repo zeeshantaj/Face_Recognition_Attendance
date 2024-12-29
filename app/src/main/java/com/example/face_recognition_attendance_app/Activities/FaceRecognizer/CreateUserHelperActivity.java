@@ -33,6 +33,8 @@ import androidx.lifecycle.Observer;
 import com.example.face_recognition_attendance_app.R;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import org.tensorflow.lite.support.image.TensorImage;
+
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
@@ -127,11 +129,6 @@ public abstract class CreateUserHelperActivity extends AppCompatActivity {
         cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis, preview);
     }
 
-    /**
-     * The face detector provides face bounds whose coordinates, width and height depend on the
-     * preview's width and height, which is guaranteed to be available after the preview starts
-     * streaming.
-     */
     private void setFaceDetector(int lensFacing) {
         previewView.getPreviewStreamState().observe(this, new Observer<StreamState>() {
             @Override
@@ -193,7 +190,7 @@ public abstract class CreateUserHelperActivity extends AppCompatActivity {
 
         YuvImage yuvImage = new YuvImage(nv21, ImageFormat.NV21, image.getWidth(), image.getHeight(), null);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuvImage.compressToJpeg(new Rect(0, 0, yuvImage.getWidth(), yuvImage.getHeight()), 75, out);
+        yuvImage.compressToJpeg(new Rect(0, 0, yuvImage.getWidth(), yuvImage.getHeight()), 85, out);
 
         byte[] imageBytes = out.toByteArray();
         return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
@@ -212,7 +209,6 @@ public abstract class CreateUserHelperActivity extends AppCompatActivity {
     public void makeAddFaceVisible() {
         saveBtn.setVisibility(View.VISIBLE);
     }
-
     public void saveData(View view) {
 
     }

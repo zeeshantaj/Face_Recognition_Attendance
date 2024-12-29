@@ -3,6 +3,7 @@ package com.example.face_recognition_attendance_app.Activities.FaceRecognizer.Re
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Rect;
+import android.media.Image;
 import android.util.Log;
 import android.util.Pair;
 
@@ -14,6 +15,7 @@ import com.example.face_recognition_attendance_app.Activities.FaceRecognizer.Fac
 import com.example.face_recognition_attendance_app.Activities.FaceRecognizer.GraphicOverlay;
 import com.example.face_recognition_attendance_app.Activities.FaceRecognizer.VisionBaseProcessor;
 import com.example.face_recognition_attendance_app.Activities.ScanUserFaceActivity;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -163,6 +165,12 @@ public class ScanUserFaceProcessor extends VisionBaseProcessor<List<Face>> {
                         Log.d("MyApp","exception "+e.getMessage());
                         // intentionally left empty
                     }
+                })
+                .addOnCompleteListener(new OnCompleteListener<List<Face>>() {
+                    @Override
+                    public void onComplete(@NonNull Task<List<Face>> task) {
+
+                    }
                 });
     }
 
@@ -235,7 +243,8 @@ public class ScanUserFaceProcessor extends VisionBaseProcessor<List<Face>> {
             @Override
             public void onSuccess(Void unused) {
                 recognisedFaceList.clear();
-                uploadImageToDb(bitmap,userId);
+//                uploadImageToDb(bitmap,userId);
+                callback.onVerificationComplete();
                 Log.d(TAG, "Document added successfully to database for userID: " + userId);
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -244,60 +253,6 @@ public class ScanUserFaceProcessor extends VisionBaseProcessor<List<Face>> {
 
                 Log.w(TAG, "Error adding vectorFace", e);
             }
-        });
-//        db.collection("Users")
-//                .document(userId)
-//                .update(data)
-//                .addOnSuccessListener(documentReference -> {
-//                    Log.d(TAG, "Document added successfully to Firestore for userID: " + userId);
-//                    recognisedFaceList.clear();
-//                })
-//                .addOnFailureListener(e -> {
-//                    db.collection("Users").document(userId).delete();
-//                    Log.w(TAG, "Error adding document to Firestore", e);
-//                });
-    }
-    public void uploadImageToDb(Bitmap bitmap,String userId){
-        if (bitmap == null) {
-            Log.e("BitmapUploader", "Bitmap is null");
-            return;
-        }
-
-        // Step 1: Convert Bitmap to Byte Array
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        byte[] data = baos.toByteArray();
-
-        // Step 2: Upload Byte Array to Firebase Storage
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReference().child("images/UserScanImage/"+userId+"/"+userId+".png");
-
-        UploadTask uploadTask = storageRef.putBytes(data);
-        uploadTask.addOnSuccessListener(taskSnapshot -> {
-            // File uploaded successfully
-            storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                DatabaseReference databaseReference = FirebaseDatabase.getInstance()
-                        .getReference()
-                        .child("UsersInfo")
-                        .child(userId);
-                HashMap<String,Object> value = new HashMap<>();
-                value.put("imageUrl", uri.toString());
-                databaseReference.updateChildren(value).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        Log.v("MyApp","everything uploaded to firebase goto home");
-                        callback.onVerificationComplete();
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("image url upload to db failed", "image url upload to db failed", e);
-                    }
-                });
-            });
-        }).addOnFailureListener(e -> {
-            // Failed to upload
-            Log.e("BitmapUploader", "Failed to upload bitmap to Firebase Storage", e);
         });
     }
     public static String convertFloatArrayToString(float[] floatArray) {

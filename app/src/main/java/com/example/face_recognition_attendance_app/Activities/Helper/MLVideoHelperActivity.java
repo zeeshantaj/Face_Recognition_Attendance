@@ -116,7 +116,7 @@ public abstract class MLVideoHelperActivity extends AppCompatActivity{
                 initSource();
             } else {
                 // Izin kamera tidak diberikan, tampilkan pesan informasi
-                showPermissionDeniedDialog("Aplikasi memerlukan izin kamera untuk fitur tertentu.");
+                showPermissionDeniedDialog("The app requires camera permission for certain features.");
             }
         } else if (requestCode == REQUEST_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -124,7 +124,7 @@ public abstract class MLVideoHelperActivity extends AppCompatActivity{
                 getLastLocation();
             } else {
                 // Izin lokasi tidak diberikan, tampilkan pesan informasi
-                showPermissionDeniedDialog("Aplikasi memerlukan izin lokasi untuk fitur tertentu.");
+                showPermissionDeniedDialog("The app requires location permission for certain features.");
             }
         }
 
@@ -133,8 +133,8 @@ public abstract class MLVideoHelperActivity extends AppCompatActivity{
     private void showPermissionDeniedDialog(String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(message)
-                .setPositiveButton("Pengaturan", (dialog, which) -> openAppSettings())
-                .setNegativeButton("Batal", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton("arrangement", (dialog, which) -> openAppSettings())
+                .setNegativeButton("Cancelled", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 

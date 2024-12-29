@@ -18,4 +18,11 @@
         <item name="android:windowEnterAnimation">@anim/slide_up</item>
         <item name="android:windowExitAnimation">@anim/slide_bottom</item>
     </style>
+    <style name="CircularShape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">100%</item>
+    </style>
+    <declare-styleable name="PreviewView">
+        <attr name="isRound" format="boolean" />
+    </declare-styleable>
 </resources>
