@@ -162,7 +162,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                 List<Float> embeddingList = convertEmbeddingToList(currentEmbedding);
 
                 // face already registered
-                if (isRegistered){
+                if (!isRegistered){
                     Map<String, Object> data = new HashMap<>();
                     data.put("embedding", embeddingList);
                     data.put("isRegistered", true);

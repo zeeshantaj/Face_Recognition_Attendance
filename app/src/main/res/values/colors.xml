@@ -9,5 +9,6 @@
     <color name="ice">#F7FFFF</color>
     <color name="red">#D50000</color>
     <color name="green">#176939</color>
+    <color name="lightGreen">#0A9F4B</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

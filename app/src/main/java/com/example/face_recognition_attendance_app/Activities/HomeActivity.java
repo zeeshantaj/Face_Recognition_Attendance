@@ -14,8 +14,10 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.face_recognition_attendance_app.R;
+import com.example.face_recognition_attendance_app.databinding.HomeActivityBinding;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
@@ -27,10 +29,15 @@ import java.util.concurrent.Executors;
 
 public class HomeActivity extends AppCompatActivity {
 
+    private HomeActivityBinding binding;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.home_activity);
+        binding = HomeActivityBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+//        BottomNa
+//        binding.viewPager.setAdapter();
 
     }
 
