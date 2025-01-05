@@ -155,6 +155,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
     }
     public void captureImage() {
         // Create an ImageCapture output options for in-memory image capture
+        UiHelper.processDialog(this,"Face Analysing!","Please wait...");
         ImageCapture.OnImageCapturedCallback capturedCallback = new ImageCapture.OnImageCapturedCallback() {
             @Override
             public void onCaptureSuccess(@NonNull ImageProxy image) {
@@ -177,12 +178,15 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                     databaseReference.updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
-                            Toast.makeText(FaceRegistrationActivity.this, "face registered successfully ", Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(FaceRegistrationActivity.this, "face registered successfully ", Toast.LENGTH_SHORT).show();
+                            UiHelper.dismissProcessDialog();
                             startActivity(new Intent(FaceRegistrationActivity.this,HomeActivity.class));
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(FaceRegistrationActivity.this, "Error "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                            UiHelper.dismissProcessDialog();
                         }
                     });
                 }else {
@@ -208,8 +212,10 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                                 float similarity = compareEmbeddings(currentEmbedding, embedding);
                                 if (similarity > 0.7) { // Adjust the threshold as needed
                                     Log.d("FaceMatch", "Faces are similar with a similarity of: " + similarity);
+                                    UiHelper.dismissProcessDialog();
                                     UiHelper.showFlawDialog(FaceRegistrationActivity.this,"Match found","Face matched!",3);
                                 } else {
+                                    UiHelper.dismissProcessDialog();
                                     UiHelper.showFlawDialog(FaceRegistrationActivity.this,"Match not found","Face didn't match!\ntry again",3);
                                     Log.d("FaceMatch", "Faces are not similar. Similarity: " + similarity);
                                 }
@@ -219,6 +225,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError databaseError) {
+                            UiHelper.dismissProcessDialog();
                             Log.e("FirebaseError", "Error retrieving data", databaseError.toException());
                         }
                     });
@@ -230,6 +237,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
                 super.onError(exception);
+                UiHelper.dismissProcessDialog();
                 Log.e("Capture", "Image capture failed: " + exception.getMessage());
             }
         };

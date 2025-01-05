@@ -18,6 +18,8 @@ import com.example.face_recognition_attendance_app.R;
 public class UiHelper {
     public static Runnable runnableDeclined = null;
     public static Handler handlerDeclined = new Handler();
+    public static Dialog processDialog;
+
     public static void showFlawDialog(Context context, String title, String content, int type) {
         Dialog errorDialog;
         Button btnContinue;
@@ -72,7 +74,33 @@ public class UiHelper {
                 errorDialog.dismiss();
             }
         };
-        handlerDeclined.postDelayed(runnableDeclined, 7000);
+        handlerDeclined.postDelayed(runnableDeclined, 10000);
     }
+    public static void processDialog(Context context, String title, String content) {
+        processDialog = new Dialog(context);
+        processDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        processDialog.setContentView(R.layout.face_analysis_dialog);
+        processDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
+        Button btnContinue;
+        TextView contentTextView, titleTextView;
+        ImageView imgErrorType;
+
+        contentTextView = processDialog.findViewById(R.id.plsTxt);
+        titleTextView = processDialog.findViewById(R.id.faceTxt);
+
+//        setText:
+        titleTextView.setText("" + title);
+        contentTextView.setText("" + content);
+
+        processDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        processDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+        processDialog.setCancelable(false);
+        processDialog.show();
+    }
+    public static void dismissProcessDialog(){
+        if (processDialog.isShowing()){
+            processDialog.dismiss();
+        }
+    }
 }
