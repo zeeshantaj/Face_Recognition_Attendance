@@ -36,6 +36,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.face_recognition_attendance_app.Activities.Util.UiHelper;
 import com.example.face_recognition_attendance_app.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -148,6 +149,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
         cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis, preview,imageCapture);
 
         captureBtn.setOnClickListener(view -> {
+
             captureImage();
         });
     }
@@ -192,9 +194,9 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                     databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                                String name = userSnapshot.child("name").getValue(String.class);
-                                List<Double> embeddingList = (List<Double>) userSnapshot.child("embedding").getValue();
+//                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                                String name = dataSnapshot.child("name").getValue(String.class);
+                                List<Double> embeddingList = (List<Double>) dataSnapshot.child("embedding").getValue();
 
                                 // Convert the List<Double> to a float[]
                                 float[] embedding = new float[embeddingList.size()];
@@ -206,11 +208,13 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                                 float similarity = compareEmbeddings(currentEmbedding, embedding);
                                 if (similarity > 0.7) { // Adjust the threshold as needed
                                     Log.d("FaceMatch", "Faces are similar with a similarity of: " + similarity);
+                                    UiHelper.showFlawDialog(FaceRegistrationActivity.this,"Match found","Face matched!",3);
                                 } else {
+                                    UiHelper.showFlawDialog(FaceRegistrationActivity.this,"Match not found","Face didn't match!\ntry again",3);
                                     Log.d("FaceMatch", "Faces are not similar. Similarity: " + similarity);
                                 }
                                 Log.d("Comparison", "User: " + name + ", Similarity: " + similarity);
-                            }
+//                            }
                         }
 
                         @Override
@@ -332,4 +336,5 @@ public class FaceRegistrationActivity extends AppCompatActivity {
     protected int getLensFacing() {
         return CameraSelector.LENS_FACING_FRONT;
     }
+
 }
