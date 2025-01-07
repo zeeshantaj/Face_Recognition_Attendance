@@ -92,12 +92,15 @@ public class HomeActivity extends AppCompatActivity {
                 switch (position) {
                     case 0:
                         binding.bottomNavigation.setSelectedItemId(R.id.home);
+                        getSupportActionBar().setTitle("Attendance");
                         break;
                     case 1:
                         binding.bottomNavigation.setSelectedItemId(R.id.history);
+                        getSupportActionBar().setTitle("History");
                         break;
                     case 2:
                         binding.bottomNavigation.setSelectedItemId(R.id.profile);
+                        getSupportActionBar().setTitle("Profile");
                         break;
                 }
             }
