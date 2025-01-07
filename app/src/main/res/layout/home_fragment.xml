@@ -5,6 +5,7 @@
     android:background="@color/ice"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <TextView
+        android:id="@+id/locationStatementTxt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="You are in checkIn radius!"
@@ -19,7 +20,7 @@
         android:id="@+id/checkInCard"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        app:cardBackgroundColor="@color/lightGreen"
+        app:cardBackgroundColor="@color/red"
         app:cardCornerRadius="360dp"
         app:cardElevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -31,6 +32,7 @@
             android:layout_height="match_parent">
 
             <TextView
+                android:id="@+id/checkIn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Check in"

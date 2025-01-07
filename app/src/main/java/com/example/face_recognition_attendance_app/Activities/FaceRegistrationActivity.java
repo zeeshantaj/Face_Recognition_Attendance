@@ -59,7 +59,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,6 +170,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                 if (!isRegistered){
                     Map<String, Object> data = new HashMap<>();
                     data.put("embedding", embeddingList);
+                    data.put("isCheckIn", false);
                     data.put("isRegistered", true);
 
                     DatabaseReference databaseReference = FirebaseDatabase.getInstance()
@@ -200,6 +203,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 //                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                                 String name = dataSnapshot.child("name").getValue(String.class);
+                                boolean isCheckIn = dataSnapshot.child("isCheckIn").getValue(Boolean.class);
                                 List<Double> embeddingList = (List<Double>) dataSnapshot.child("embedding").getValue();
 
                                 // Convert the List<Double> to a float[]
@@ -213,7 +217,15 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                                 if (similarity > 0.7) { // Adjust the threshold as needed
                                     Log.d("FaceMatch", "Faces are similar with a similarity of: " + similarity);
                                     UiHelper.dismissProcessDialog();
-                                    UiHelper.showFlawDialog(FaceRegistrationActivity.this,"Match found","Face matched!",3);
+//                                    UiHelper.showFlawDialog(FaceRegistrationActivity.this,"Match found","Face matched!",2);
+                                    UiHelper.processDialog(FaceRegistrationActivity.this,"Face Matched","face matched successfully\nyour attendance is marked");
+                                    if (!isCheckIn) {
+                                        // need to checkin
+                                        uploadAttendanceToFirebase(true);
+                                    }else {
+                                        // need to checkout
+                                        uploadAttendanceToFirebase(false);
+                                    }
                                 } else {
                                     UiHelper.dismissProcessDialog();
                                     UiHelper.showFlawDialog(FaceRegistrationActivity.this,"Match not found","Face didn't match!\ntry again",3);
@@ -321,8 +333,6 @@ public class FaceRegistrationActivity extends AppCompatActivity {
         long declaredLength = fileDescriptor.getDeclaredLength();
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
     }
-
-
     // Convert the ImageProxy (from the camera capture) to Bitmap
     private Bitmap imageToBitmap(ImageProxy image) {
         int format = image.getFormat();
@@ -344,5 +354,81 @@ public class FaceRegistrationActivity extends AppCompatActivity {
     protected int getLensFacing() {
         return CameraSelector.LENS_FACING_FRONT;
     }
+    private void uploadAttendanceToFirebase(boolean checkIn){
+        long millis = System.currentTimeMillis();
+        String child = String.valueOf(millis);
 
+        // Reference to the Attendance node
+        DatabaseReference attendanceRef = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("UsersInfo")
+                .child("ZGtgySxgsAZtOt8jcXs70b3CBlR2")
+                .child("Attendance")
+                .child(getTodaysDate());
+
+        // Reference to the User Info node (for check-in status)
+        DatabaseReference userInfoRef = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("UsersInfo")
+                .child("ZGtgySxgsAZtOt8jcXs70b3CBlR2");
+
+        HashMap<String, Object> attendanceMap = new HashMap<>();
+        attendanceMap.put("currentDateTime", getCurrentDateTime());
+        attendanceMap.put("isCheckIn", checkIn);
+
+        if (checkIn) {
+            attendanceMap.put("checkInTime", getCurrentTime());
+        } else {
+            attendanceMap.put("checkOutTime", getCurrentTime());
+        }
+
+        // Update the user's check-in status as well
+        Map<String, Object> userInfoMap = new HashMap<>();
+        userInfoMap.put("isCheckIn", checkIn);
+
+        // Execute both updates
+        userInfoRef.updateChildren(userInfoMap).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                // Now update the Attendance node
+                attendanceRef.updateChildren(attendanceMap).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        UiHelper.dismissProcessDialog();
+//                        startActivity(new Intent(FaceRegistrationActivity.this, HomeActivity.class));
+                        finish();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(FaceRegistrationActivity.this, "Error updating attendance: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        UiHelper.dismissProcessDialog();
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(FaceRegistrationActivity.this, "Error updating user info: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                UiHelper.dismissProcessDialog();
+            }
+        });
+    }
+
+
+    private String getTodaysDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd:MM:yyyy");
+        Date currentDate = new Date();
+        return sdf.format(currentDate);
+    }
+    private String getCurrentDateTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss:a:dd:MM:yyyy");
+        Date currentDate = new Date();
+        return sdf.format(currentDate);
+    }
+    private String getCurrentTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss:a:");
+        Date currentDate = new Date();
+        return sdf.format(currentDate);
+    }
 }
