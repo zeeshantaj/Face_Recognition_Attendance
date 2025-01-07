@@ -12,6 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.face_recognition_attendance_app.Activities.Models.AttendanceHistoryModel;
 import com.example.face_recognition_attendance_app.R;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
@@ -31,9 +34,30 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull HistoryAdapter.ViewHolder holder, int position) {
         AttendanceHistoryModel model = modelList.get(position);
-        holder.date.setText(model.getCurrentDateTime());
-        holder.checkInTine.setText(model.getCheckInTime());
-        holder.checkOutTime.setText(model.getCheckOutTime());
+
+        String currentDate = model.getCurrentDateTime();
+        String checkIn = model.getCheckInTime();
+        String checkOut = model.getCheckOutTime();
+
+        String cleanedTime1 = checkIn.replace(":pm:", "").replace(":am:", "");
+        String cleanedTime2 = checkOut.replace(":pm:", "").replace(":am:", "");
+
+        holder.checkInTine.setText(cleanedTime1);
+        holder.checkOutTime.setText(cleanedTime2);
+
+        SimpleDateFormat inputFormat = new SimpleDateFormat("hh:mm:ss:aa:dd:MM:yyyy");
+        SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
+
+        try {
+            Date date = inputFormat.parse(currentDate);
+            String formattedDate = outputFormat.format(date);
+            holder.date.setText(formattedDate);
+
+        } catch (ParseException e) {
+            System.out.println("Error parsing date: " + e.getMessage());
+        }
+
+
     }
 
     @Override

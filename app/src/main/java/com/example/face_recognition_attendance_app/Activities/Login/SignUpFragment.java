@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.example.face_recognition_attendance_app.Activities.FaceRegistrationActivity;
 import com.example.face_recognition_attendance_app.Activities.HomeActivity;
 import com.example.face_recognition_attendance_app.Activities.ScanUserFaceActivity;
 import com.example.face_recognition_attendance_app.Activities.Util.FragmentUtils;
@@ -148,7 +149,7 @@ public class SignUpFragment extends Fragment {
             });
     }
     private void redirectToScanFaceActivity(String userId) {
-        Intent intent = new Intent(getContext(), ScanUserFaceActivity.class);
+        Intent intent = new Intent(getContext(), FaceRegistrationActivity.class);
         intent.putExtra("userId", userId);
         intent.putExtra("isRegistered", false);
         startActivity(intent);

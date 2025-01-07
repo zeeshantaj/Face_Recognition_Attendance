@@ -52,7 +52,7 @@ public class LoginFragment extends Fragment {
                 return;
             }
             if (strPass.isEmpty()){
-                name.setError("Password is empty!");
+                password.setError("Password is empty!");
                 return;
             }
 
@@ -76,7 +76,6 @@ public class LoginFragment extends Fragment {
         resetPasswordTxt.setOnClickListener(view1 -> {
             FragmentUtils.SetFragment(getActivity().getSupportFragmentManager(), new ResetPasswordFragment(),R.id.loginParentFrameLay);
         });
-
         return view;
 
     }

@@ -15,6 +15,7 @@ import com.example.face_recognition_attendance_app.Activities.Adapter.HistoryAda
 import com.example.face_recognition_attendance_app.Activities.Models.AttendanceHistoryModel;
 import com.example.face_recognition_attendance_app.databinding.AttendanceHistoryFragmentBinding;
 import com.example.face_recognition_attendance_app.databinding.FragmentSignUpBinding;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -37,10 +38,12 @@ public class AttendanceHistoryFragment extends Fragment {
         return binding.getRoot();
     }
     private void getData(){
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String uid = auth.getUid();
         DatabaseReference databaseReference = FirebaseDatabase.getInstance()
                 .getReference()
                 .child("UsersInfo")
-                .child("ZGtgySxgsAZtOt8jcXs70b3CBlR2")
+                .child(uid)
                 .child("Attendance");
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override

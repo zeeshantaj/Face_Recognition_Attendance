@@ -23,6 +23,7 @@ import com.example.face_recognition_attendance_app.Activities.Interfaces.OnCurre
 import com.example.face_recognition_attendance_app.Activities.Util.UiHelper;
 import com.example.face_recognition_attendance_app.R;
 import com.example.face_recognition_attendance_app.databinding.HomeFragmentBinding;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,18 +35,17 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
 
     private HomeFragmentBinding binding;
     // ubit location
-//    private static final double TARGET_LAT = 24.940664;
-//    private static final double TARGET_LON = 67.123947;
+    private static final double TARGET_LAT = 24.940664;
+    private static final double TARGET_LON = 67.123947;
     // home location
-    private static final double TARGET_LAT = 24.896131;
-    private static final double TARGET_LON = 67.014410;
+//    private static final double TARGET_LAT = 24.896131;
+//    private static final double TARGET_LON = 67.014410;
     private static final float RADIUS_IN_METERS = 500; // 500 meters radius
     boolean isCheckIn = false;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = HomeFragmentBinding.inflate(inflater, container, false);
-
 
         binding.checkInCard.setEnabled(false);
         return binding.getRoot();
@@ -109,11 +109,13 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
         isCheckIn();
     }
 
-    private void isCheckIn(){
+    private void isCheckIn() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String uid = auth.getUid();
         DatabaseReference databaseReference = FirebaseDatabase.getInstance()
                 .getReference()
                 .child("UsersInfo")
-                .child("ZGtgySxgsAZtOt8jcXs70b3CBlR2");
+                .child(uid);
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

@@ -121,7 +121,6 @@ public class HomeActivity extends AppCompatActivity {
         super.onResume();
         getLastLocation();
     }
-
     @SuppressLint("MissingPermission")
     private void getLastLocation() {
         if (!isGPSEnabled()){

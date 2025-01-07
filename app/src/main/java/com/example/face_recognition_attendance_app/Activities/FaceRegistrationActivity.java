@@ -77,11 +77,16 @@ public class FaceRegistrationActivity extends AppCompatActivity {
     private ImageButton captureBtn;
     private boolean isRegistered;
     private TextView instructionTxt;
+    private String uid;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_face_registration);
         getSupportActionBar().hide();
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        uid = auth.getUid();
 
         cameraProviderFuture = ProcessCameraProvider.getInstance(getApplicationContext());
         previewView = findViewById(R.id.camera_source_preview);
@@ -176,7 +181,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                     DatabaseReference databaseReference = FirebaseDatabase.getInstance()
                             .getReference()
                             .child("UsersInfo")
-                            .child("ZGtgySxgsAZtOt8jcXs70b3CBlR2");
+                            .child(uid);
 
                     databaseReference.updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
@@ -197,7 +202,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                     DatabaseReference databaseReference = FirebaseDatabase.getInstance()
                             .getReference()
                             .child("UsersInfo")
-                            .child("ZGtgySxgsAZtOt8jcXs70b3CBlR2");
+                            .child(uid);
                     databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -221,10 +226,10 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                                     UiHelper.processDialog(FaceRegistrationActivity.this,"Face Matched","face matched successfully\nyour attendance is marked");
                                     if (!isCheckIn) {
                                         // need to checkin
-                                        uploadAttendanceToFirebase(true);
+                                        uploadAttendanceToFirebase(true,uid);
                                     }else {
                                         // need to checkout
-                                        uploadAttendanceToFirebase(false);
+                                        uploadAttendanceToFirebase(false,uid);
                                     }
                                 } else {
                                     UiHelper.dismissProcessDialog();
@@ -354,7 +359,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
     protected int getLensFacing() {
         return CameraSelector.LENS_FACING_FRONT;
     }
-    private void uploadAttendanceToFirebase(boolean checkIn){
+    private void uploadAttendanceToFirebase(boolean checkIn,String uid){
         long millis = System.currentTimeMillis();
         String child = String.valueOf(millis);
 
@@ -362,7 +367,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
         DatabaseReference attendanceRef = FirebaseDatabase.getInstance()
                 .getReference()
                 .child("UsersInfo")
-                .child("ZGtgySxgsAZtOt8jcXs70b3CBlR2")
+                .child(uid)
                 .child("Attendance")
                 .child(getTodaysDate());
 
@@ -370,7 +375,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
         DatabaseReference userInfoRef = FirebaseDatabase.getInstance()
                 .getReference()
                 .child("UsersInfo")
-                .child("ZGtgySxgsAZtOt8jcXs70b3CBlR2");
+                .child(uid);
 
         HashMap<String, Object> attendanceMap = new HashMap<>();
         attendanceMap.put("currentDateTime", getCurrentDateTime());
