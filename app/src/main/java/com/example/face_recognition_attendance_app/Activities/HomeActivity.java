@@ -14,8 +14,12 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
@@ -33,8 +37,10 @@ import com.example.face_recognition_attendance_app.Activities.Fragment.Attendanc
 import com.example.face_recognition_attendance_app.Activities.Fragment.HomeFragment;
 import com.example.face_recognition_attendance_app.Activities.Fragment.ProfileFragment;
 import com.example.face_recognition_attendance_app.Activities.Interfaces.OnCurrentLocationRetrieved;
+import com.example.face_recognition_attendance_app.Activities.Login.LoginActivity;
 import com.example.face_recognition_attendance_app.R;
 import com.example.face_recognition_attendance_app.databinding.HomeActivityBinding;
+import com.example.face_recognition_attendance_app.databinding.LoginActivityBinding;
 import com.google.android.gms.dynamic.IFragmentWrapper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -184,4 +190,20 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = new MenuInflater(this);
+        inflater.inflate(R.menu.main_menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.logOutMenu){
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
