@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -36,6 +37,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.face_recognition_attendance_app.Activities.Interfaces.DatabaseCallback;
+import com.example.face_recognition_attendance_app.Activities.Models.AttendanceDBModel;
+import com.example.face_recognition_attendance_app.Activities.SQLite.SqliteHelper;
 import com.example.face_recognition_attendance_app.Activities.Util.UiHelper;
 import com.example.face_recognition_attendance_app.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -43,6 +47,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -116,6 +121,14 @@ public class FaceRegistrationActivity extends AppCompatActivity {
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA);
         } else {
+            initSource();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CAMERA){
             initSource();
         }
     }
@@ -208,7 +221,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 //                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                                 String name = dataSnapshot.child("name").getValue(String.class);
-                                boolean isCheckIn = dataSnapshot.child("isCheckIn").getValue(Boolean.class);
+//                                boolean isCheckIn = dataSnapshot.child("isCheckIn").getValue(Boolean.class);
                                 List<Double> embeddingList = (List<Double>) dataSnapshot.child("embedding").getValue();
 
                                 // Convert the List<Double> to a float[]
@@ -224,13 +237,34 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                                     UiHelper.dismissProcessDialog();
 //                                    UiHelper.showFlawDialog(FaceRegistrationActivity.this,"Match found","Face matched!",2);
                                     UiHelper.processDialog(FaceRegistrationActivity.this,"Face Matched","face matched successfully\nyour attendance is marked");
-                                    if (!isCheckIn) {
-                                        // need to checkin
-                                        uploadAttendanceToFirebase(true,uid);
+                                    // need to checkin
+                                    //                                        uploadAttendanceToFirebase(true,uid);
+                                    // need to checkout
+                                    //                                        uploadAttendanceToFirebase(false,uid);
+
+                                    SqliteHelper helper = new SqliteHelper(FaceRegistrationActivity.this);
+                                    boolean isCheckIn = helper.checkAttendanceExists(uid,getTodaysDate());
+                                    if (!isCheckIn){
+                                        uploadAttendanceToSqlite(true,uid,name);
                                     }else {
-                                        // need to checkout
-                                        uploadAttendanceToFirebase(false,uid);
+                                        helper.updateCheckoutTime(uid, getCurrentTime(),getTodaysDate(), new DatabaseCallback() {
+                                            @Override
+                                            public void onSuccess(String message) {
+                                                UiHelper.dismissProcessDialog();
+                                                Toast.makeText(FaceRegistrationActivity.this, "success "+message, Toast.LENGTH_SHORT).show();
+                                                finish();
+                                            }
+
+                                            @Override
+                                            public void onFailure(String error) {
+                                                UiHelper.dismissProcessDialog();
+                                                Toast.makeText(FaceRegistrationActivity.this, "failed to updated checkout "+error, Toast.LENGTH_SHORT).show();
+                                                finish();
+                                            }
+                                        });
+//                                        uploadAttendanceToSqlite(false,uid,name);
                                     }
+
                                 } else {
                                     UiHelper.dismissProcessDialog();
                                     UiHelper.showFlawDialog(FaceRegistrationActivity.this,"Match not found","Face didn't match!\ntry again",3);
@@ -359,6 +393,34 @@ public class FaceRegistrationActivity extends AppCompatActivity {
     protected int getLensFacing() {
         return CameraSelector.LENS_FACING_FRONT;
     }
+    private void uploadAttendanceToSqlite(boolean checkIn, String uid, String name) {
+        AttendanceDBModel model = new AttendanceDBModel();
+        model.setId(uid);
+        model.setName(name);
+        String currentDate = getTodaysDate();
+        model.setIsCheckIn(1);
+        model.setCheckInTime(getCurrentTime());
+        model.setCheckOutTime(null);
+        SqliteHelper sqliteHelper = new SqliteHelper(this);
+
+        model.setCheckInDate(currentDate);
+        sqliteHelper.markAttendance(model, new DatabaseCallback() {
+            @Override
+            public void onSuccess(String message) {
+                UiHelper.dismissProcessDialog();
+                Toast.makeText(FaceRegistrationActivity.this, "success: " + message, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(FaceRegistrationActivity.this, "Error updating attendance: " + error, Toast.LENGTH_SHORT).show();
+                UiHelper.dismissProcessDialog();
+            }
+        });
+    }
+
+
     private void uploadAttendanceToFirebase(boolean checkIn,String uid){
         long millis = System.currentTimeMillis();
         String child = String.valueOf(millis);

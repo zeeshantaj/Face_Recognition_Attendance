@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 import com.example.face_recognition_attendance_app.Activities.FaceRegistrationActivity;
 import com.example.face_recognition_attendance_app.Activities.HomeActivity;
-import com.example.face_recognition_attendance_app.Activities.ScanUserFaceActivity;
 import com.example.face_recognition_attendance_app.Activities.Util.FragmentUtils;
 import com.example.face_recognition_attendance_app.R;
 import com.example.face_recognition_attendance_app.databinding.FragmentSignUpBinding;

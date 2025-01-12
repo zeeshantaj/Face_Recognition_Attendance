@@ -17,7 +17,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.face_recognition_attendance_app.Activities.FaceRegistrationActivity;
 import com.example.face_recognition_attendance_app.Activities.HomeActivity;
 import com.example.face_recognition_attendance_app.Activities.Models.User;
-import com.example.face_recognition_attendance_app.Activities.ScanUserFaceActivity;
+
 import com.example.face_recognition_attendance_app.Activities.Util.FragmentUtils;
 import com.example.face_recognition_attendance_app.Activities.Util.UiHelper;
 import com.example.face_recognition_attendance_app.Activities.enums.Role;

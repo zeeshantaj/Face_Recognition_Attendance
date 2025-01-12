@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import com.example.face_recognition_attendance_app.Activities.FaceRegistrationActivity;
 import com.example.face_recognition_attendance_app.Activities.HomeActivity;
 import com.example.face_recognition_attendance_app.Activities.Interfaces.OnCurrentLocationRetrieved;
+import com.example.face_recognition_attendance_app.Activities.SQLite.SqliteHelper;
 import com.example.face_recognition_attendance_app.Activities.Util.UiHelper;
 import com.example.face_recognition_attendance_app.R;
 import com.example.face_recognition_attendance_app.databinding.HomeFragmentBinding;
@@ -30,18 +31,22 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved {
 
 
     private HomeFragmentBinding binding;
     // ubit location
-    private static final double TARGET_LAT = 24.940664;
-    private static final double TARGET_LON = 67.123947;
+//    private static final double TARGET_LAT = 24.940664;
+//    private static final double TARGET_LON = 67.123947;
     // home location
-//    private static final double TARGET_LAT = 24.896131;
-//    private static final double TARGET_LON = 67.014410;
+    private static final double TARGET_LAT = 24.896131;
+    private static final double TARGET_LON = 67.014410;
     private static final float RADIUS_IN_METERS = 500; // 500 meters radius
     boolean isCheckIn = false;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -87,11 +92,13 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
             Log.d("MainActivity", "User is outside the defined radius!");
         }
     }
+
     @Override
     public void onLocationFailed(String message) {
-        UiHelper.showFlawDialog(getContext(),"Error",message,1);
+        UiHelper.showFlawDialog(getContext(), "Error", message, 1);
     }
-    private void sentToFaceRecognition(){
+
+    private void sentToFaceRecognition() {
 
         binding.locationStatementTxt.setText("You are within the defined radius!");
 
@@ -112,29 +119,44 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
     private void isCheckIn() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String uid = auth.getUid();
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance()
-                .getReference()
-                .child("UsersInfo")
-                .child(uid);
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                isCheckIn = snapshot.child("isCheckIn").getValue(Boolean.class);
-                if (!isCheckIn){
-                    binding.checkInCard.setBackgroundResource(R.drawable.green_circle);
-                    binding.checkIn.setText("CheckIn");
-                    sentToFaceRecognition();
-                }else {
-                    binding.checkInCard.setBackgroundResource(R.drawable.green_circle);
-                    binding.checkIn.setText("CheckOut");
-                    sentToFaceRecognition();
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                UiHelper.showFlawDialog(getContext(),"Error",error.getMessage(),1);
-            }
-        });
+//        DatabaseReference databaseReference = FirebaseDatabase.getInstance()
+//                .getReference()
+//                .child("UsersInfo")
+//                .child(uid);
+//        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                isCheckIn = snapshot.child("isCheckIn").getValue(Boolean.class);
+//                if (!isCheckIn){
+//                    binding.checkInCard.setBackgroundResource(R.drawable.green_circle);
+//                    binding.checkIn.setText("CheckIn");
+//                    sentToFaceRecognition();
+//                }else {
+//                    binding.checkInCard.setBackgroundResource(R.drawable.green_circle);
+//                    binding.checkIn.setText("CheckOut");
+//                    sentToFaceRecognition();
+//                }
+//            }
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                UiHelper.showFlawDialog(getContext(),"Error",error.getMessage(),1);
+//            }
+//        });
+        SqliteHelper helper = new SqliteHelper(getContext());
+        boolean isCheckIn = helper.checkIfCheckOut(uid, getTodaysDate());
+        binding.checkInCard.setBackgroundResource(R.drawable.green_circle);
+        if (isCheckIn) {
+            binding.checkIn.setText("CheckIn");
+        } else {
+            binding.checkIn.setText("CheckOut");
+        }
+        sentToFaceRecognition();
     }
 
+
+    private String getTodaysDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd:MM:yyyy");
+        Date currentDate = new Date();
+        return sdf.format(currentDate);
+    }
 }

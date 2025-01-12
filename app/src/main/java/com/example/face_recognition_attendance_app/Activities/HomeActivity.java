@@ -46,6 +46,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceDetection;
@@ -71,7 +72,7 @@ public class HomeActivity extends AppCompatActivity {
         List<Fragment> fragments = new ArrayList<>();
         fragments.add(new HomeFragment());
         fragments.add(new AttendanceHistoryFragment());
-        fragments.add(new ProfileFragment());
+//        fragments.add(new ProfileFragment());
 
         NavAdapter adapter = new NavAdapter(this, fragments);
         binding.viewPager.setAdapter(adapter);
@@ -83,10 +84,11 @@ public class HomeActivity extends AppCompatActivity {
             } else if (item.getItemId() == R.id.history) {
                 binding.viewPager.setCurrentItem(1, false);
 
-            } else if (item.getItemId() == R.id.profile) {
-                binding.viewPager.setCurrentItem(2, false);
-
             }
+//            else if (item.getItemId() == R.id.profile) {
+//                binding.viewPager.setCurrentItem(2, false);
+//
+//            }
             return true;
         });
 
@@ -104,10 +106,10 @@ public class HomeActivity extends AppCompatActivity {
                         binding.bottomNavigation.setSelectedItemId(R.id.history);
                         getSupportActionBar().setTitle("History");
                         break;
-                    case 2:
-                        binding.bottomNavigation.setSelectedItemId(R.id.profile);
-                        getSupportActionBar().setTitle("Profile");
-                        break;
+//                    case 2:
+//                        binding.bottomNavigation.setSelectedItemId(R.id.profile);
+//                        getSupportActionBar().setTitle("Profile");
+//                        break;
                 }
             }
         });
@@ -127,6 +129,7 @@ public class HomeActivity extends AppCompatActivity {
         super.onResume();
         getLastLocation();
     }
+
     @SuppressLint("MissingPermission")
     private void getLastLocation() {
         if (!isGPSEnabled()){
@@ -201,6 +204,8 @@ public class HomeActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.logOutMenu){
+            FirebaseAuth auth = FirebaseAuth.getInstance();
+            auth.signOut();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         }
