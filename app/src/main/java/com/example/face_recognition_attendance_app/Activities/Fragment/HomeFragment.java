@@ -1,8 +1,11 @@
 package com.example.face_recognition_attendance_app.Activities.Fragment;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -45,7 +48,6 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
     private static final double TARGET_LAT = 24.896131;
     private static final double TARGET_LON = 67.014410;
     private static final float RADIUS_IN_METERS = 500; // 500 meters radius
-    boolean isCheckIn = false;
 
     @Nullable
     @Override
@@ -88,7 +90,7 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
             binding.checkIn.setText("out of radius");
             binding.checkInCard.setEnabled(false);
             binding.checkInCard.setBackgroundResource(R.drawable.red_circle);
-            binding.locationStatementTxt.setText("You are outside the defined radius!");
+            binding.locationStatementTxt.setText("You are outside Attendance radius!");
             Log.d("MainActivity", "User is outside the defined radius!");
         }
     }
@@ -100,7 +102,7 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
 
     private void sentToFaceRecognition() {
 
-        binding.locationStatementTxt.setText("You are within the defined radius!");
+        binding.locationStatementTxt.setText("You are within Attendance radius!");
 
         binding.checkInCard.setEnabled(true);
         binding.checkInCard.setOnClickListener(view -> {
@@ -142,10 +144,16 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
 //                UiHelper.showFlawDialog(getContext(),"Error",error.getMessage(),1);
 //            }
 //        });
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AttendancePrefs", MODE_PRIVATE);
+        String randomId = sharedPreferences.getString("currentRandomId", null);
+
         SqliteHelper helper = new SqliteHelper(getContext());
-        boolean isCheckIn = helper.checkIfCheckOut(uid, getTodaysDate());
+        boolean isCheckIn = false;
+        if (randomId != null){
+            isCheckIn = helper.checkAttendanceExists(randomId, getTodaysDate());
+        }
         binding.checkInCard.setBackgroundResource(R.drawable.green_circle);
-        if (isCheckIn) {
+        if (!isCheckIn) {
             binding.checkIn.setText("CheckIn");
         } else {
             binding.checkIn.setText("CheckOut");

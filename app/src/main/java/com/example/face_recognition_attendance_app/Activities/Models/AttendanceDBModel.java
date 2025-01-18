@@ -1,10 +1,18 @@
 package com.example.face_recognition_attendance_app.Activities.Models;
 
 public class AttendanceDBModel {
-    private String id,name,checkInTime,checkOutTime,checkInDate;
+    private String id,uid,name,checkInTime,checkOutTime,checkInDate;
     private int isCheckIn;
 
     public AttendanceDBModel() {
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public String getCheckInDate() {

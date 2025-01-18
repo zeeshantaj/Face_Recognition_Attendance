@@ -2,6 +2,7 @@ package com.example.face_recognition_attendance_app.Activities;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -70,6 +71,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 public class FaceRegistrationActivity extends AppCompatActivity {
@@ -80,6 +82,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
     private FrameLayout videoFrameLayout;
     private ImageCapture imageCapture;
     private ImageButton captureBtn;
+    boolean isCheckIn;
     private boolean isRegistered;
     private TextView instructionTxt;
     private String uid;
@@ -242,14 +245,24 @@ public class FaceRegistrationActivity extends AppCompatActivity {
                                     // need to checkout
                                     //                                        uploadAttendanceToFirebase(false,uid);
 
+                                    SharedPreferences sharedPreferences = getSharedPreferences("AttendancePrefs", MODE_PRIVATE);
+                                    String randomId = sharedPreferences.getString("currentRandomId", null);
+
                                     SqliteHelper helper = new SqliteHelper(FaceRegistrationActivity.this);
-                                    boolean isCheckIn = helper.checkAttendanceExists(uid,getTodaysDate());
+
+                                    if (randomId != null) {
+                                        isCheckIn = helper.checkAttendanceExists(randomId, getTodaysDate());
+                                    }
                                     if (!isCheckIn){
                                         uploadAttendanceToSqlite(true,uid,name);
                                     }else {
-                                        helper.updateCheckoutTime(uid, getCurrentTime(),getTodaysDate(), new DatabaseCallback() {
+
+                                        helper.updateCheckoutTime(randomId, getCurrentTime(),getTodaysDate(), new DatabaseCallback() {
                                             @Override
                                             public void onSuccess(String message) {
+                                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                editor.remove("currentRandomId");
+                                                editor.apply();
                                                 UiHelper.dismissProcessDialog();
                                                 Toast.makeText(FaceRegistrationActivity.this, "success "+message, Toast.LENGTH_SHORT).show();
                                                 finish();
@@ -394,8 +407,18 @@ public class FaceRegistrationActivity extends AppCompatActivity {
         return CameraSelector.LENS_FACING_FRONT;
     }
     private void uploadAttendanceToSqlite(boolean checkIn, String uid, String name) {
+
+        String randomId = UUID.randomUUID().toString();
+
+        SharedPreferences sharedPreferences = getSharedPreferences("AttendancePrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("currentRandomId", randomId);
+        editor.apply();
+
+
         AttendanceDBModel model = new AttendanceDBModel();
-        model.setId(uid);
+        model.setId(randomId);
+        model.setUid(uid);
         model.setName(name);
         String currentDate = getTodaysDate();
         model.setIsCheckIn(1);
