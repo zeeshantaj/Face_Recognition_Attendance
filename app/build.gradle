@@ -70,4 +70,10 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'
 
     implementation 'com.github.bumptech.glide:glide:4.14.2'
+
+
+    // otp view
+    implementation 'com.github.mukeshsolanki.android-otpview-pinview:otpview:3.1.0'
+    //click shrinker
+//    implementation 'com.hardik.clickshrinkeffect:shrinkeffect:1.0.1'
 }

@@ -1,6 +1,7 @@
 package com.example.face_recognition_attendance_app.Activities.Fragment;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.face_recognition_attendance_app.Activities.Adapter.HistoryAdapter;
+import com.example.face_recognition_attendance_app.Activities.Models.AttendanceDBModel;
 import com.example.face_recognition_attendance_app.Activities.Models.AttendanceHistoryModel;
+import com.example.face_recognition_attendance_app.Activities.SQLite.SqliteHelper;
 import com.example.face_recognition_attendance_app.databinding.AttendanceHistoryFragmentBinding;
 import com.example.face_recognition_attendance_app.databinding.FragmentSignUpBinding;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,12 +31,14 @@ import java.util.List;
 public class AttendanceHistoryFragment extends Fragment {
 
     private AttendanceHistoryFragmentBinding binding;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = AttendanceHistoryFragmentBinding.inflate(inflater, container, false);
 
         getData();
+
 
         return binding.getRoot();
     }

@@ -1,5 +1,6 @@
 package com.example.face_recognition_attendance_app.Activities.SQLite;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -10,6 +11,9 @@ import androidx.annotation.Nullable;
 
 import com.example.face_recognition_attendance_app.Activities.Interfaces.DatabaseCallback;
 import com.example.face_recognition_attendance_app.Activities.Models.AttendanceDBModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SqliteHelper extends SQLiteOpenHelper {
 
@@ -93,6 +97,26 @@ public class SqliteHelper extends SQLiteOpenHelper {
         }
 
     }
+    @SuppressLint("Range")
+    public List<String> getAllIds() {
+        List<String> idList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT " + COLUMN_ID + " FROM " + TABLENAME;
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                 String id = cursor.getString(cursor.getColumnIndex(COLUMN_ID));
+                idList.add(id);
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+
+        return idList;
+    }
+
     public void updateCheckoutTime(String id, String checkoutTime, String checkInDate, DatabaseCallback callback) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -133,4 +157,36 @@ public class SqliteHelper extends SQLiteOpenHelper {
             cursor.close();
         }
     }
+    public void deleteEntryById(String id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLENAME, COLUMN_ID + " = ?", new String[]{id});
+    }
+    @SuppressLint("Range")
+    public List<AttendanceDBModel> getAllAttendance() {
+        List<AttendanceDBModel> attendanceList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLENAME;
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                AttendanceDBModel model = new AttendanceDBModel();
+                model.setId(cursor.getString(cursor.getColumnIndex(COLUMN_ID)));
+                model.setUid(cursor.getString(cursor.getColumnIndex(COLUMN_UID)));
+                model.setName(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)));
+                model.setCheckInTime(cursor.getString(cursor.getColumnIndex(COLUMN_CHECKINTIME)));
+                model.setIsCheckIn(cursor.getInt(cursor.getColumnIndex(COLUMN_ISCHECKIN)));
+                model.setCheckInDate(cursor.getString(cursor.getColumnIndex(COLUMN_CHECKINDATE)));
+                model.setCheckOutTime(cursor.getString(cursor.getColumnIndex(COLUMN_CHECKOUTTIME)));
+
+                attendanceList.add(model);
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+
+        return attendanceList;
+    }
+
 }

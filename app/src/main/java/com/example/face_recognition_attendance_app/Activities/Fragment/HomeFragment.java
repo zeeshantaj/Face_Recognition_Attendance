@@ -5,6 +5,8 @@ import static android.content.Context.MODE_PRIVATE;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -20,6 +22,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.face_recognition_attendance_app.Activities.Broadcast.UploadAttendanceToFirebase;
 import com.example.face_recognition_attendance_app.Activities.FaceRegistrationActivity;
 import com.example.face_recognition_attendance_app.Activities.HomeActivity;
 import com.example.face_recognition_attendance_app.Activities.Interfaces.OnCurrentLocationRetrieved;
@@ -53,7 +56,9 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = HomeFragmentBinding.inflate(inflater, container, false);
-
+        IntentFilter filter = new IntentFilter("uploadToData");
+        UploadAttendanceToFirebase uploadAttendanceToFirebase = new UploadAttendanceToFirebase();
+        requireContext().registerReceiver(uploadAttendanceToFirebase, filter);
         binding.checkInCard.setEnabled(false);
         return binding.getRoot();
     }
@@ -103,7 +108,7 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
     private void sentToFaceRecognition() {
 
         binding.locationStatementTxt.setText("You are within Attendance radius!");
-
+//        new ClickShrinkEffect(cardView);
         binding.checkInCard.setEnabled(true);
         binding.checkInCard.setOnClickListener(view -> {
             Intent intent = new Intent(getContext(), FaceRegistrationActivity.class);
@@ -119,31 +124,7 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
     }
 
     private void isCheckIn() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        String uid = auth.getUid();
-//        DatabaseReference databaseReference = FirebaseDatabase.getInstance()
-//                .getReference()
-//                .child("UsersInfo")
-//                .child(uid);
-//        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                isCheckIn = snapshot.child("isCheckIn").getValue(Boolean.class);
-//                if (!isCheckIn){
-//                    binding.checkInCard.setBackgroundResource(R.drawable.green_circle);
-//                    binding.checkIn.setText("CheckIn");
-//                    sentToFaceRecognition();
-//                }else {
-//                    binding.checkInCard.setBackgroundResource(R.drawable.green_circle);
-//                    binding.checkIn.setText("CheckOut");
-//                    sentToFaceRecognition();
-//                }
-//            }
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                UiHelper.showFlawDialog(getContext(),"Error",error.getMessage(),1);
-//            }
-//        });
+
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AttendancePrefs", MODE_PRIVATE);
         String randomId = sharedPreferences.getString("currentRandomId", null);
 

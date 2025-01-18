@@ -21,12 +21,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Face_Recognition_Attendance_App"
         tools:targetApi="31">
-
+        <activity
+            android:name=".Activities.Activity.AdminActivity"
+            android:exported="false" />
         <activity
             android:name=".Activities.FaceRegistrationActivity"
-            android:exported="true" >
-
-        </activity>
+            android:exported="true"></activity>
         <activity
             android:name=".Activities.HomeActivity"
             android:exported="true" />
