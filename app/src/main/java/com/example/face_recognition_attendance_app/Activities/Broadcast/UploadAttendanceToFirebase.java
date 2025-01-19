@@ -58,6 +58,7 @@ public class UploadAttendanceToFirebase extends BroadcastReceiver {
         databaseReference.setValue(model).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
+                Log.d("MyApp","data uploaded to firebase ");
                 deleteFromDb();
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -84,6 +85,7 @@ public class UploadAttendanceToFirebase extends BroadcastReceiver {
                         List<String> allIds = sqliteHelper.getAllIds();
                         for (String dbId : allIds){
                             if (id.equals(dbId)){
+                                Log.d("MyApp","record deleted against id = "+id);
                                 sqliteHelper.deleteEntryById(id);
                             }
                         }
