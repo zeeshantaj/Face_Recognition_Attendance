@@ -88,14 +88,14 @@ public class AdminActivity extends AppCompatActivity {
                 if (!pin.isEmpty()){
                     if (selectedText.equals("word file")){
                         String filePath = createScopedFilePath(pin, ".word");
-                        DownloadExtension.exportToWord(list,filePath);
+                        DownloadExtension.exportToWord(list,filePath,AdminActivity.this);
                     }else if (selectedText.equals("pdf file")){
                         String filePath = createScopedFilePath(pin, ".pdf");
-                        DownloadExtension.exportToPDF(list,filePath);
+                        DownloadExtension.exportToPDF(list,filePath,AdminActivity.this);
                     }
                     else if (selectedText.equals("excel file")){
                         String filePath = createScopedFilePath(pin, ".excel");
-                        DownloadExtension.exportToExcel(list,filePath);
+                        DownloadExtension.exportToExcel(list,filePath,AdminActivity.this);
                     }
                 }else {
                     Toast.makeText(AdminActivity.this, "Please Enter File Name", Toast.LENGTH_SHORT).show();

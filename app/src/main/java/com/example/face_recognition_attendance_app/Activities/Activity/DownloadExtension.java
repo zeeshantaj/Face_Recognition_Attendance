@@ -1,5 +1,8 @@
 package com.example.face_recognition_attendance_app.Activities.Activity;
 
+import android.content.Context;
+import android.widget.Toast;
+
 import com.example.face_recognition_attendance_app.Activities.Models.AttendanceDBModel;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -19,17 +22,8 @@ import java.io.FileOutputStream;
 import java.util.List;
 
 public class DownloadExtension {
-    private String fileExtension,filePath;
-    private List<AttendanceDBModel> attendanceDBModelList;
 
-    public DownloadExtension(String fileExtension,List<AttendanceDBModel> list,String filePath) {
-        this.fileExtension = fileExtension;
-        this.attendanceDBModelList = list;
-        this.filePath = filePath;
-
-    }
-
-    public static void exportToPDF(List<AttendanceDBModel> records, String filePath) {
+    public static void exportToPDF(List<AttendanceDBModel> records, String filePath,Context context) {
         try {
             File file = new File(filePath);
             PdfWriter writer = new PdfWriter(new FileOutputStream(file));
@@ -48,12 +42,13 @@ public class DownloadExtension {
             }
 
             document.close();
+            Toast.makeText(context, "File Saved Successfully", Toast.LENGTH_SHORT).show();
             System.out.println("PDF created at " + filePath);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    public static void exportToWord(List<AttendanceDBModel> records, String filePath) {
+    public static void exportToWord(List<AttendanceDBModel> records, String filePath, Context context) {
         try {
             XWPFDocument document = new XWPFDocument();
             XWPFParagraph title = document.createParagraph();
@@ -80,13 +75,13 @@ public class DownloadExtension {
             document.write(out);
             out.close();
             document.close();
-
+            Toast.makeText(context, "File Saved Successfully", Toast.LENGTH_SHORT).show();
             System.out.println("Word file created at " + filePath);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    public static void exportToExcel(List<AttendanceDBModel> records, String filePath) {
+    public static void exportToExcel(List<AttendanceDBModel> records, String filePath,Context context) {
         try {
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Attendance Records");
@@ -116,7 +111,7 @@ public class DownloadExtension {
             workbook.write(fileOut);
             fileOut.close();
             workbook.close();
-
+            Toast.makeText(context, "File Saved Successfully", Toast.LENGTH_SHORT).show();
             System.out.println("Excel file created at " + filePath);
         } catch (Exception e) {
             e.printStackTrace();
