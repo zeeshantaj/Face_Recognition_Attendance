@@ -3,6 +3,7 @@ package com.example.face_recognition_attendance_app.Activities.Fragment;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -21,6 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.face_recognition_attendance_app.Activities.Broadcast.UploadAttendanceToFirebase;
 import com.example.face_recognition_attendance_app.Activities.FaceRegistrationActivity;
@@ -51,14 +53,13 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
     private static final double TARGET_LAT = 24.896131;
     private static final double TARGET_LON = 67.014410;
     private static final float RADIUS_IN_METERS = 500; // 500 meters radius
-
+    private UploadAttendanceToFirebase uploadAttendanceToFirebase = new UploadAttendanceToFirebase();
+    ;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = HomeFragmentBinding.inflate(inflater, container, false);
-        IntentFilter filter = new IntentFilter("uploadToData");
-        UploadAttendanceToFirebase uploadAttendanceToFirebase = new UploadAttendanceToFirebase();
-        requireContext().registerReceiver(uploadAttendanceToFirebase, filter);
+
         binding.checkInCard.setEnabled(false);
         return binding.getRoot();
     }
@@ -120,6 +121,7 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
     @Override
     public void onResume() {
         super.onResume();
+
         isCheckIn();
     }
 
@@ -148,4 +150,5 @@ public class HomeFragment extends Fragment implements OnCurrentLocationRetrieved
         Date currentDate = new Date();
         return sdf.format(currentDate);
     }
+
 }

@@ -3,13 +3,18 @@ package com.example.face_recognition_attendance_app.Activities;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.Image;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.provider.Settings;
@@ -38,15 +43,23 @@ import com.example.face_recognition_attendance_app.Activities.Fragment.HomeFragm
 import com.example.face_recognition_attendance_app.Activities.Fragment.ProfileFragment;
 import com.example.face_recognition_attendance_app.Activities.Interfaces.OnCurrentLocationRetrieved;
 import com.example.face_recognition_attendance_app.Activities.Login.LoginActivity;
+import com.example.face_recognition_attendance_app.Activities.Models.AttendanceDBModel;
+import com.example.face_recognition_attendance_app.Activities.SQLite.SqliteHelper;
 import com.example.face_recognition_attendance_app.R;
 import com.example.face_recognition_attendance_app.databinding.HomeActivityBinding;
 import com.example.face_recognition_attendance_app.databinding.LoginActivityBinding;
 import com.google.android.gms.dynamic.IFragmentWrapper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceDetection;
@@ -55,6 +68,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HomeActivity extends AppCompatActivity {
@@ -62,7 +76,7 @@ public class HomeActivity extends AppCompatActivity {
     private HomeActivityBinding binding;
     private FusedLocationProviderClient fusedLocationClient;
     private OnCurrentLocationRetrieved onCurrentLocationRetrieved;
-
+    SqliteHelper sqliteHelper;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,12 +136,22 @@ public class HomeActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1001);
         }
+        sqliteHelper = new SqliteHelper(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         getLastLocation();
+        registerReceiver(networkConnection, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(networkConnection);
+
     }
 
     @SuppressLint("MissingPermission")
@@ -210,5 +234,97 @@ public class HomeActivity extends AppCompatActivity {
             finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+    public BroadcastReceiver networkConnection = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+                ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+
+                if (connectivityManager != null) {
+                    NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+                    if (networkInfo != null) {
+                        if (networkInfo.getState() == NetworkInfo.State.CONNECTED) {
+                            Log.d("MyApp","wifi connected");
+                            ExecutorService executorService = Executors.newSingleThreadExecutor();
+                            executorService.execute(()-> uploadData(context));
+                        }
+                    } else {
+                        Log.d("MyApp","wifi not connected");
+
+                    }
+                }
+            } catch (Exception ex) {
+                System.out.println("Network connection exc: " + ex.toString());
+            }
+        }
+    };
+    private void uploadData(Context context){
+        List<AttendanceDBModel> attendanceDBModelList ;
+
+        attendanceDBModelList = sqliteHelper.getAllAttendance();
+        if (!attendanceDBModelList.isEmpty()){
+            for (AttendanceDBModel att:attendanceDBModelList){
+                uploadToFirebase(att,context);
+            }
+        }
+
+    }
+    private void uploadToFirebase(AttendanceDBModel model, Context context){
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String uid = auth.getUid();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("UsersInfo")
+                .child(uid)
+                .child("Attendance")
+                .child(model.getId());
+        databaseReference.setValue(model).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                Log.d("MyApp","data uploaded to firebase ");
+                deleteFromDb();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(context, "Error "+e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void deleteFromDb(){
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String uid = auth.getUid();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("UsersInfo")
+                .child(uid)
+                .child("Attendance");
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    for (DataSnapshot snapshot1 : snapshot.getChildren()){
+                        List<String> firebaseIDs = new ArrayList<>();
+                        String id = snapshot1.child("id").getValue(String.class);
+                        firebaseIDs.add(id);
+
+                        List<String> allIds = sqliteHelper.getAllIds();
+                        for (String dbId : allIds){
+                            if (firebaseIDs.contains(dbId)){
+                                Log.d("MyApp","record deleted against id = "+id);
+                                sqliteHelper.deleteEntryById(dbId);
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.d("MyApp","error "+error.getMessage());
+            }
+        });
     }
 }
