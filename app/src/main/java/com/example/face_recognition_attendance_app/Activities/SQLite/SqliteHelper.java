@@ -29,6 +29,15 @@ public class SqliteHelper extends SQLiteOpenHelper {
     public static final String  COLUMN_CHECKINDATE = "CheckInDate";
     public static final String  COLUMN_ISCHECKIN = "isCheckIn";
 
+    public static final String FIREBASEATTENDACE = "FirebaseAttendanceTable";
+    public static final String  FIREBASE_COLUMN_ID = "firebase_id";
+    public static final String  FIREBASE_COLUMN_UID = "firebase_uid";
+    public static final String  FIREBASE_COLUMN_NAME = "firebase_name";
+    public static final String  FIREBASE_COLUMN_CHECKINTIME = "firebase_checkInTime";
+    public static final String  FIREBASE_COLUMN_CHECKOUTTIME = "firebase_checkOutTime";
+    public static final String  FIREBASE_COLUMN_CHECKINDATE = "firebase_CheckInDate";
+    public static final String  FIREBASE_COLUMN_ISCHECKIN = "firebase_isCheckIn";
+
 
     public SqliteHelper(@Nullable Context context) {
         super(context, DBNAME,null,DBVERSION);
@@ -44,12 +53,24 @@ public class SqliteHelper extends SQLiteOpenHelper {
                 COLUMN_CHECKOUTTIME + " TEXT, " +
                 COLUMN_CHECKINDATE + " TEXT, " +
                 COLUMN_ISCHECKIN + " INTEGER)";
+
+        String createTableQuery1 = "CREATE TABLE " + FIREBASEATTENDACE + " (" +
+                FIREBASE_COLUMN_ID + " INTEGER, " +
+                FIREBASE_COLUMN_UID + " TEXT, " +
+                FIREBASE_COLUMN_NAME + " TEXT, " +
+                FIREBASE_COLUMN_CHECKINTIME + " TEXT, " +
+                FIREBASE_COLUMN_CHECKOUTTIME + " TEXT, " +
+                FIREBASE_COLUMN_CHECKINDATE + " TEXT, " +
+                FIREBASE_COLUMN_ISCHECKIN + " INTEGER)";
+
         sqLiteDatabase.execSQL(createTableQuery);
+        sqLiteDatabase.execSQL(createTableQuery1);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLENAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + FIREBASEATTENDACE);
         // Recreate the table
         onCreate(sqLiteDatabase);
     }
@@ -189,4 +210,62 @@ public class SqliteHelper extends SQLiteOpenHelper {
         return attendanceList;
     }
 
+    public void addAttendanceFromFirebase(AttendanceDBModel model) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(FIREBASE_COLUMN_ID, model.getId());
+        values.put(FIREBASE_COLUMN_UID, model.getUid());
+        values.put(FIREBASE_COLUMN_NAME, model.getName());
+        values.put(FIREBASE_COLUMN_CHECKINTIME, model.getCheckInTime());
+        values.put(FIREBASE_COLUMN_ISCHECKIN, model.getIsCheckIn());
+        values.put(FIREBASE_COLUMN_CHECKINDATE, model.getCheckInDate());
+        values.put(FIREBASE_COLUMN_CHECKOUTTIME,model.getCheckOutTime());
+        db.insert(FIREBASEATTENDACE, null, values);
+    }
+    @SuppressLint("Range")
+    public List<AttendanceDBModel> getAllAttendanceFromFirebase() {
+        List<AttendanceDBModel> attendanceList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + FIREBASEATTENDACE;
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                AttendanceDBModel model = new AttendanceDBModel();
+                model.setId(cursor.getString(cursor.getColumnIndex(FIREBASE_COLUMN_ID)));
+                model.setUid(cursor.getString(cursor.getColumnIndex(FIREBASE_COLUMN_UID)));
+                model.setName(cursor.getString(cursor.getColumnIndex(FIREBASE_COLUMN_NAME)));
+                model.setCheckInTime(cursor.getString(cursor.getColumnIndex(FIREBASE_COLUMN_CHECKINTIME)));
+                model.setIsCheckIn(cursor.getInt(cursor.getColumnIndex(FIREBASE_COLUMN_ISCHECKIN)));
+                model.setCheckInDate(cursor.getString(cursor.getColumnIndex(FIREBASE_COLUMN_CHECKINDATE)));
+                model.setCheckOutTime(cursor.getString(cursor.getColumnIndex(FIREBASE_COLUMN_CHECKOUTTIME)));
+
+                attendanceList.add(model);
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+
+        return attendanceList;
+    }
+    @SuppressLint("Range")
+    public List<String> getAllFirebaseIds() {
+        List<String> idList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT " + FIREBASE_COLUMN_ID + " FROM " + FIREBASEATTENDACE;
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                String id = cursor.getString(cursor.getColumnIndex(FIREBASE_COLUMN_ID));
+                idList.add(id);
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+
+        return idList;
+    }
 }

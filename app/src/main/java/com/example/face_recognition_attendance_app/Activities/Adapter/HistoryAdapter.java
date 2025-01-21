@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.face_recognition_attendance_app.Activities.Models.AttendanceDBModel;
 import com.example.face_recognition_attendance_app.Activities.Models.AttendanceHistoryModel;
 import com.example.face_recognition_attendance_app.R;
 
@@ -16,26 +17,27 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
-    private List<AttendanceHistoryModel> modelList;
+    private List<AttendanceDBModel> modelList;
 
-    public HistoryAdapter(List<AttendanceHistoryModel> modelList) {
+    public HistoryAdapter(List<AttendanceDBModel> modelList) {
         this.modelList = modelList;
     }
 
     @NonNull
     @Override
-    public HistoryAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.attendace_recycler_item,parent,false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull HistoryAdapter.ViewHolder holder, int position) {
-        AttendanceHistoryModel model = modelList.get(position);
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        AttendanceDBModel model = modelList.get(position);
 
-        String currentDate = model.getCurrentDateTime();
+        String currentDate = model.getCheckInDate();
         String checkIn = model.getCheckInTime();
         String checkOut = model.getCheckOutTime();
 
@@ -45,19 +47,10 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         holder.checkInTine.setText(cleanedTime1);
         holder.checkOutTime.setText(cleanedTime2);
 
-        SimpleDateFormat inputFormat = new SimpleDateFormat("hh:mm:ss:aa:dd:MM:yyyy");
-        SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
+        holder.date.setText(currentDate);
 
-        try {
-            Date date = inputFormat.parse(currentDate);
-            String formattedDate = outputFormat.format(date);
-            holder.date.setText(formattedDate);
-
-        } catch (ParseException e) {
-            System.out.println("Error parsing date: " + e.getMessage());
-        }
-
-
+        String formattedTime = calculateTime(checkIn,checkOut);
+        holder.totalTime.setText(formattedTime);
     }
 
     @Override
@@ -76,5 +69,29 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
             totalTime = itemView.findViewById(R.id.totalTime);
 
         }
+    }
+    private String  calculateTime(String checkInTime,String checkOutTime){
+
+        SimpleDateFormat format = new SimpleDateFormat("hh:mm:ss:aa");
+        String formattedTime = "";
+        try {
+            // Parse the time strings into Date objects
+            Date checkInDate = format.parse(checkInTime);
+            Date checkOutDate = format.parse(checkOutTime);
+
+            // Calculate the difference in milliseconds
+            long differenceInMillis = checkOutDate.getTime() - checkInDate.getTime();
+
+            // Convert the difference to seconds (or other units)
+            long differenceInSeconds = TimeUnit.MILLISECONDS.toSeconds(differenceInMillis);
+            long hours = differenceInSeconds / 3600;
+            long minutes = (differenceInSeconds % 3600) / 60;
+            formattedTime = String.format("%02dH %02dM", hours, minutes);
+
+            System.out.println("Time Difference: " + formattedTime + " seconds");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return formattedTime;
     }
 }

@@ -152,5 +152,6 @@ public class SignUpFragment extends Fragment {
         intent.putExtra("userId", userId);
         intent.putExtra("isRegistered", false);
         startActivity(intent);
+        getActivity().finish();
     }
 }

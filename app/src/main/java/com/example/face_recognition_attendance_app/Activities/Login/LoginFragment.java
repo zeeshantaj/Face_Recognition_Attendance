@@ -1,6 +1,7 @@
 package com.example.face_recognition_attendance_app.Activities.Login;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -39,7 +40,7 @@ public class LoginFragment extends Fragment {
     }
 
     private View view;
-
+    private ProgressDialog dialog;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -47,6 +48,7 @@ public class LoginFragment extends Fragment {
         // Inflate the layout for this fragment
         view =  inflater.inflate(R.layout.fragment_login, container, false);
 
+        dialog = new ProgressDialog(getContext());
         TextInputEditText name = view.findViewById(R.id.loginEmail);
         TextInputEditText password = view.findViewById(R.id.loginPass);
         Button login = view.findViewById(R.id.loginBtn);
@@ -66,16 +68,24 @@ public class LoginFragment extends Fragment {
                 return;
             }
 
+            dialog.setTitle("Please Wait");
+            dialog.setMessage("Login in progress....");
+            dialog.setCancelable(false);
+            dialog.show();
+
             FirebaseAuth auth = FirebaseAuth.getInstance();
             auth.signInWithEmailAndPassword(strName,strPass).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                 @Override
                 public void onSuccess(AuthResult authResult) {
+                    dialog.dismiss();
                     Toast.makeText(getContext(), "Login success", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(getContext(), HomeActivity.class));
+                    getActivity().finish();
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
+                    dialog.dismiss();
                     Toast.makeText(getContext(), "Error "+e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });

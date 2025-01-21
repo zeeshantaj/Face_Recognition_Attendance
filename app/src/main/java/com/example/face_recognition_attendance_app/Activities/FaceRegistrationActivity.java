@@ -205,6 +205,7 @@ public class FaceRegistrationActivity extends AppCompatActivity {
 //                            Toast.makeText(FaceRegistrationActivity.this, "face registered successfully ", Toast.LENGTH_SHORT).show();
                             UiHelper.dismissProcessDialog();
                             startActivity(new Intent(FaceRegistrationActivity.this,HomeActivity.class));
+                            finish();
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override

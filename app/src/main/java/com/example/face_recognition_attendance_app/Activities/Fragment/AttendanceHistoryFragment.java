@@ -1,6 +1,7 @@
 package com.example.face_recognition_attendance_app.Activities.Fragment;
 
 import android.os.Bundle;
+import android.os.NetworkOnMainThreadException;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.face_recognition_attendance_app.Activities.Adapter.HistoryAdapter;
+import com.example.face_recognition_attendance_app.Activities.Connectivity.HttpWeb;
 import com.example.face_recognition_attendance_app.Activities.Models.AttendanceDBModel;
 import com.example.face_recognition_attendance_app.Activities.Models.AttendanceHistoryModel;
 import com.example.face_recognition_attendance_app.Activities.SQLite.SqliteHelper;
@@ -27,21 +29,36 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AttendanceHistoryFragment extends Fragment {
 
     private AttendanceHistoryFragmentBinding binding;
-
+    SqliteHelper sqliteHelper;
+    List<AttendanceDBModel> modelList;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = AttendanceHistoryFragmentBinding.inflate(inflater, container, false);
 
-        getData();
-
-
+        sqliteHelper = new SqliteHelper(getContext());
+        modelList = sqliteHelper.getAllAttendanceFromFirebase();
+        if (HttpWeb.isConnectingToInternet(getContext())){
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            executorService.execute(this::getData);
+        }else {
+            loadLocalData();
+        }
         return binding.getRoot();
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+    }
+
     private void getData(){
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String uid = auth.getUid();
@@ -53,15 +70,16 @@ public class AttendanceHistoryFragment extends Fragment {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<AttendanceHistoryModel> modelList = new ArrayList<>();
                 if (snapshot.exists()){
                     for (DataSnapshot dataSnapshot:snapshot.getChildren()){
-                        AttendanceHistoryModel model = dataSnapshot.getValue(AttendanceHistoryModel.class);
-                        modelList.add(model);
+                        List<String> existingIds = sqliteHelper.getAllFirebaseIds();
+                        AttendanceDBModel model = dataSnapshot.getValue(AttendanceDBModel.class);
+                        if (model != null && !existingIds.contains(model.getId())) {
+                            sqliteHelper.addAttendanceFromFirebase(model);
+                        }
                     }
-                    HistoryAdapter adapter = new HistoryAdapter(modelList);
-                    binding.historyRV.setLayoutManager(new LinearLayoutManager(getContext()));
-                    binding.historyRV.setAdapter(adapter);
+                    loadLocalData();
+
                 }
             }
 
@@ -71,4 +89,9 @@ public class AttendanceHistoryFragment extends Fragment {
             }
         });
     }
+    private void loadLocalData(){
+        modelList = sqliteHelper.getAllAttendanceFromFirebase();
+        HistoryAdapter adapter = new HistoryAdapter(modelList);
+        binding.historyRV.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.historyRV.setAdapter(adapter);    }
 }
