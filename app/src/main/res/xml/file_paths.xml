@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Grant access to the 'face_register_app_attendances' directory -->
+    <external-path
+        name="face_register_app_attendances"
+        path="Documents/face_register_app_attendances/" />
+</paths>

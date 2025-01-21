@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -28,7 +29,10 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.face_recognition_attendance_app.Activities.Adapter.AttendanceRecordAdapter;
 import com.example.face_recognition_attendance_app.Activities.Models.AttendanceDBModel;
 import com.example.face_recognition_attendance_app.Activities.Util.UiHelper;
 import com.example.face_recognition_attendance_app.R;
@@ -49,6 +53,8 @@ public class AdminActivity extends AppCompatActivity {
 
     MaterialButton downloadBtn;
     RadioGroup radioGroup;
+    RecyclerView fileRv;
+    TextView fileTv;
     List<AttendanceDBModel> list = new ArrayList<>();
     private static final int STORAGE_PERMISSION_CODE = 100;
 
@@ -58,6 +64,8 @@ public class AdminActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin);
         radioGroup = findViewById(R.id.extensionRadioGroup);
         downloadBtn = findViewById(R.id.downloadBtn);
+        fileRv = findViewById(R.id.fileRv);
+        fileTv = findViewById(R.id.savedFileTv);
 
         checkAndRequestPermissions();
     }
@@ -105,17 +113,32 @@ public class AdminActivity extends AppCompatActivity {
                     switch (selectedText) {
                         case "word file": {
                             String filePath = createScopedFilePath(pin, ".word");
-                            DownloadExtension.exportToWord(list, filePath, AdminActivity.this);
+                            DownloadExtension.exportToWord(list, filePath, AdminActivity.this, new DownloadExtension.FileCreationCallback() {
+                                @Override
+                                public void onFileCreated() {
+                                    listFilesInDirectory();
+                                }
+                            });
                             break;
                         }
                         case "pdf file": {
                             String filePath = createScopedFilePath(pin, ".pdf");
-                            DownloadExtension.exportToPDF(list, filePath, AdminActivity.this);
+                            DownloadExtension.exportToPDF(list, filePath, AdminActivity.this, new DownloadExtension.FileCreationCallback() {
+                                @Override
+                                public void onFileCreated() {
+                                    listFilesInDirectory();
+                                }
+                            });
                             break;
                         }
                         case "excel file": {
                             String filePath = createScopedFilePath(pin, ".excel");
-                            DownloadExtension.exportToExcel(list, filePath, AdminActivity.this);
+                            DownloadExtension.exportToExcel(list, filePath, AdminActivity.this, new DownloadExtension.FileCreationCallback() {
+                                @Override
+                                public void onFileCreated() {
+                                    listFilesInDirectory();
+                                }
+                            });
                             break;
                         }
                     }
@@ -221,23 +244,21 @@ public class AdminActivity extends AppCompatActivity {
     }
 
     public void listFilesInDirectory() {
-        // Define the folder path
+        List<File> fileList = new ArrayList<>();
+
         File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "face_register_app_attendances");
 
-        // Check if the directory exists and is a valid directory
         if (directory.exists() && directory.isDirectory()) {
-            // List all files in the directory
+
             File[] files = directory.listFiles();
 
             if (files != null) {
                 for (File file : files) {
-                    // Check if it's a file or a directory
                     if (file.isFile()) {
-                        // Log or process the file
                         String fileExtension = getFileExtension(file);
-                        System.out.println("File: " + file.getName()+fileExtension);
+                        fileList.add(file);
+                        System.out.println("File: " + file.getName());
                     } else if (file.isDirectory()) {
-                        // Log or process the sub-directory
                         System.out.println("Sub-directory: " + file.getName());
                     }
                 }
@@ -245,6 +266,16 @@ public class AdminActivity extends AppCompatActivity {
         } else {
             System.out.println("Directory does not exist or is not a directory.");
         }
+        if (!fileList.isEmpty()){
+            fileTv.setVisibility(View.VISIBLE);
+            AttendanceRecordAdapter attendanceRecordAdapter = new AttendanceRecordAdapter(this,fileList);
+            fileRv.setLayoutManager(new LinearLayoutManager(this));
+            fileRv.setAdapter(attendanceRecordAdapter);
+        }else {
+            fileTv.setVisibility(View.GONE);
+        }
+
+
     }
     public String getFileExtension(File file) {
         String fileName = file.getName();

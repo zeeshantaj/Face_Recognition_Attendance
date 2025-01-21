@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DownloadExtension {
 
-    public static void exportToPDF(List<AttendanceDBModel> records, String filePath,Context context) {
+    public static void exportToPDF(List<AttendanceDBModel> records, String filePath,Context context,FileCreationCallback creationCallback) {
         try {
             File file = new File(filePath);
             PdfWriter writer = new PdfWriter(new FileOutputStream(file));
@@ -79,11 +79,14 @@ public class DownloadExtension {
             document.close();
             Toast.makeText(context, "File Saved Successfully", Toast.LENGTH_SHORT).show();
             System.out.println("PDF created at " + filePath);
+            if (creationCallback != null){
+                creationCallback.onFileCreated();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    public static void exportToWord(List<AttendanceDBModel> records, String filePath, Context context) {
+    public static void exportToWord(List<AttendanceDBModel> records, String filePath, Context context,FileCreationCallback creationCallback) {
         try {
             XWPFDocument document = new XWPFDocument();
             XWPFParagraph title = document.createParagraph();
@@ -135,12 +138,15 @@ public class DownloadExtension {
             document.close();
             Toast.makeText(context, "File Saved Successfully", Toast.LENGTH_SHORT).show();
             System.out.println("Word file created at " + filePath);
+            if (creationCallback != null){
+                creationCallback.onFileCreated();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void exportToExcel(List<AttendanceDBModel> records, String filePath, Context context) {
+    public static void exportToExcel(List<AttendanceDBModel> records, String filePath, Context context,FileCreationCallback creationCallback) {
         try {
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Attendance Records");
@@ -191,6 +197,9 @@ public class DownloadExtension {
             workbook.close();
             Toast.makeText(context, "File Saved Successfully", Toast.LENGTH_SHORT).show();
             System.out.println("Excel file created at " + filePath);
+            if (creationCallback != null){
+                creationCallback.onFileCreated();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -220,4 +229,8 @@ public class DownloadExtension {
         }
         return formattedTime;
     }
+    public interface FileCreationCallback {
+        void onFileCreated();
+    }
+
 }
