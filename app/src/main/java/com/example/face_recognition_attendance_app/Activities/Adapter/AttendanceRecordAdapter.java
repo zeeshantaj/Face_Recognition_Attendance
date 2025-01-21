@@ -1,5 +1,6 @@
 package com.example.face_recognition_attendance_app.Activities.Adapter;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -15,6 +16,7 @@ import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.face_recognition_attendance_app.R;
+import com.google.android.datatransport.backend.cct.BuildConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,6 +63,18 @@ public class AttendanceRecordAdapter extends RecyclerView.Adapter<AttendanceReco
             }
         });
         holder.itemView.setOnLongClickListener(view -> {
+            Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType(getMimeType(file));
+            shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            try {
+                context.startActivity(Intent.createChooser(shareIntent, "Share File Using"));
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(context, "No application found to share this file", Toast.LENGTH_SHORT).show();
+            }
 
             return true;
         });

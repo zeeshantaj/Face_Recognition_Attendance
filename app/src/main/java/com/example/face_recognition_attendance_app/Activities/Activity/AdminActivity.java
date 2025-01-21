@@ -112,7 +112,7 @@ public class AdminActivity extends AppCompatActivity {
 
                     switch (selectedText) {
                         case "word file": {
-                            String filePath = createScopedFilePath(pin, ".word");
+                            String filePath = createScopedFilePath(pin, ".docx");
                             DownloadExtension.exportToWord(list, filePath, AdminActivity.this, new DownloadExtension.FileCreationCallback() {
                                 @Override
                                 public void onFileCreated() {
@@ -132,7 +132,7 @@ public class AdminActivity extends AppCompatActivity {
                             break;
                         }
                         case "excel file": {
-                            String filePath = createScopedFilePath(pin, ".excel");
+                            String filePath = createScopedFilePath(pin, ".xls");
                             DownloadExtension.exportToExcel(list, filePath, AdminActivity.this, new DownloadExtension.FileCreationCallback() {
                                 @Override
                                 public void onFileCreated() {
