@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -32,6 +33,12 @@ import com.example.face_recognition_attendance_app.Activities.Models.AttendanceD
 import com.example.face_recognition_attendance_app.Activities.Util.UiHelper;
 import com.example.face_recognition_attendance_app.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.mukeshsolanki.OtpView;
 
 import java.io.File;
@@ -52,8 +59,16 @@ public class AdminActivity extends AppCompatActivity {
         radioGroup = findViewById(R.id.extensionRadioGroup);
         downloadBtn = findViewById(R.id.downloadBtn);
 
-
+        checkAndRequestPermissions();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        list = getAllData();
+        listFilesInDirectory();
+    }
+
     private void onPermissionGranted(){
 
         downloadBtn.setOnClickListener(view -> {
@@ -86,16 +101,23 @@ public class AdminActivity extends AppCompatActivity {
                 ipDialog.dismiss();
                 String pin = nameEdt.getText().toString();
                 if (!pin.isEmpty()){
-                    if (selectedText.equals("word file")){
-                        String filePath = createScopedFilePath(pin, ".word");
-                        DownloadExtension.exportToWord(list,filePath,AdminActivity.this);
-                    }else if (selectedText.equals("pdf file")){
-                        String filePath = createScopedFilePath(pin, ".pdf");
-                        DownloadExtension.exportToPDF(list,filePath,AdminActivity.this);
-                    }
-                    else if (selectedText.equals("excel file")){
-                        String filePath = createScopedFilePath(pin, ".excel");
-                        DownloadExtension.exportToExcel(list,filePath,AdminActivity.this);
+
+                    switch (selectedText) {
+                        case "word file": {
+                            String filePath = createScopedFilePath(pin, ".word");
+                            DownloadExtension.exportToWord(list, filePath, AdminActivity.this);
+                            break;
+                        }
+                        case "pdf file": {
+                            String filePath = createScopedFilePath(pin, ".pdf");
+                            DownloadExtension.exportToPDF(list, filePath, AdminActivity.this);
+                            break;
+                        }
+                        case "excel file": {
+                            String filePath = createScopedFilePath(pin, ".excel");
+                            DownloadExtension.exportToExcel(list, filePath, AdminActivity.this);
+                            break;
+                        }
                     }
                 }else {
                     Toast.makeText(AdminActivity.this, "Please Enter File Name", Toast.LENGTH_SHORT).show();
@@ -124,12 +146,14 @@ public class AdminActivity extends AppCompatActivity {
     }
 
     public String createScopedFilePath(String fileName, String fileExtension) {
-        File directory = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "face_register_app_attendances");
+
         if (!directory.exists()) {
             directory.mkdirs();
         }
         return new File(directory, fileName + fileExtension).getAbsolutePath();
     }
+
 
     public void checkAndRequestPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -158,6 +182,80 @@ public class AdminActivity extends AppCompatActivity {
             }
         }
     }
+    private List<AttendanceDBModel> getAllData(){
+        List<AttendanceDBModel> attendanceDBModelList = new ArrayList<>();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("UsersInfo");
 
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // Iterate over all users
+                    for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                        String userId = userSnapshot.getKey(); // Get user ID (UID)
+
+                        // Get attendance data for this user
+                        DataSnapshot attendanceSnapshot = userSnapshot.child("Attendance");
+
+                        if (attendanceSnapshot.exists()) {
+                            // Iterate over all attendance records for the current user
+                            for (DataSnapshot attendanceDataSnapshot : attendanceSnapshot.getChildren()) {
+                                AttendanceDBModel model = attendanceDataSnapshot.getValue(AttendanceDBModel.class);
+                                attendanceDBModelList.add(model);
+                                // Handle the model data here, e.g., save to local DB or process
+                                Log.d("MyApp", "User ID: " + userId + " Attendance ID: " + model.getId());
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.d("MyApp", "Failed to load data: " + error.getMessage());
+            }
+        });
+        return attendanceDBModelList;
+    }
+
+    public void listFilesInDirectory() {
+        // Define the folder path
+        File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "face_register_app_attendances");
+
+        // Check if the directory exists and is a valid directory
+        if (directory.exists() && directory.isDirectory()) {
+            // List all files in the directory
+            File[] files = directory.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+                    // Check if it's a file or a directory
+                    if (file.isFile()) {
+                        // Log or process the file
+                        String fileExtension = getFileExtension(file);
+                        System.out.println("File: " + file.getName()+fileExtension);
+                    } else if (file.isDirectory()) {
+                        // Log or process the sub-directory
+                        System.out.println("Sub-directory: " + file.getName());
+                    }
+                }
+            }
+        } else {
+            System.out.println("Directory does not exist or is not a directory.");
+        }
+    }
+    public String getFileExtension(File file) {
+        String fileName = file.getName();
+        int dotIndex = fileName.lastIndexOf(".");
+
+        // Check if the file has an extension
+        if (dotIndex > 0) {
+            return fileName.substring(dotIndex + 1); // Get the file extension after the dot
+        } else {
+            return ""; // No extension
+        }
+    }
 
 }

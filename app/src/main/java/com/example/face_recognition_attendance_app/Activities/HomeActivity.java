@@ -3,6 +3,7 @@ package com.example.face_recognition_attendance_app.Activities;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -77,11 +78,13 @@ public class HomeActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
     private OnCurrentLocationRetrieved onCurrentLocationRetrieved;
     SqliteHelper sqliteHelper;
+    private ProgressDialog dialog;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = HomeActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        dialog = new ProgressDialog(this);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         List<Fragment> fragments = new ArrayList<>();
         fragments.add(new HomeFragment());
@@ -229,6 +232,10 @@ public class HomeActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.logOutMenu){
             FirebaseAuth auth = FirebaseAuth.getInstance();
+            dialog.setTitle("Please Wait");
+            dialog.setMessage("Logout in progress....");
+            dialog.setCancelable(false);
+            dialog.show();
             auth.signOut();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -326,5 +333,11 @@ public class HomeActivity extends AppCompatActivity {
                 Log.d("MyApp","error "+error.getMessage());
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dialog.dismiss();
     }
 }
