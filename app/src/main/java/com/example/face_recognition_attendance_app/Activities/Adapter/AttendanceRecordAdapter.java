@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -49,7 +50,7 @@ public class AttendanceRecordAdapter extends RecyclerView.Adapter<AttendanceReco
 
         holder.createdAt.setText(getFileCreationTime(file));
 
-        holder.itemView.setOnClickListener(view -> {
+        holder.cardView.setOnClickListener(view -> {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
@@ -62,7 +63,7 @@ public class AttendanceRecordAdapter extends RecyclerView.Adapter<AttendanceReco
                 Toast.makeText(context, "Unable to open file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        holder.itemView.setOnLongClickListener(view -> {
+        holder.cardView.setOnLongClickListener(view -> {
             Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
 
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
@@ -87,10 +88,12 @@ public class AttendanceRecordAdapter extends RecyclerView.Adapter<AttendanceReco
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView createdAt,nameTv;
+        CardView cardView;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             nameTv = itemView.findViewById(R.id.fileNameTv);
             createdAt = itemView.findViewById(R.id.createdTv);
+            cardView = itemView.findViewById(R.id.itemCard);
         }
     }
     public String  getFileCreationTime(File file) {

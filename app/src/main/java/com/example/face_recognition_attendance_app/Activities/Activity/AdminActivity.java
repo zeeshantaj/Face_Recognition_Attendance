@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -54,10 +55,11 @@ public class AdminActivity extends AppCompatActivity {
     MaterialButton downloadBtn;
     RadioGroup radioGroup;
     RecyclerView fileRv;
-    TextView fileTv;
+    TextView fileTv,viewShareFileTv;
     List<AttendanceDBModel> list = new ArrayList<>();
     private static final int STORAGE_PERMISSION_CODE = 100;
-
+    Handler handler = new Handler();
+    Runnable runnable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +68,8 @@ public class AdminActivity extends AppCompatActivity {
         downloadBtn = findViewById(R.id.downloadBtn);
         fileRv = findViewById(R.id.fileRv);
         fileTv = findViewById(R.id.savedFileTv);
-
+        viewShareFileTv = findViewById(R.id.viewShareFileTv);
+        setHandler();
         checkAndRequestPermissions();
     }
 
@@ -274,8 +277,6 @@ public class AdminActivity extends AppCompatActivity {
         }else {
             fileTv.setVisibility(View.GONE);
         }
-
-
     }
     public String getFileExtension(File file) {
         String fileName = file.getName();
@@ -288,5 +289,19 @@ public class AdminActivity extends AppCompatActivity {
             return ""; // No extension
         }
     }
-
+    private void setHandler(){
+        viewShareFileTv.setVisibility(View.VISIBLE);
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                viewShareFileTv.setVisibility(View.GONE);
+            }
+        };
+        handler.postDelayed(runnable,10000);
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(runnable);
+    }
 }
